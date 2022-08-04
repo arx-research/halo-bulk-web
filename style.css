@@ -33,7 +33,7 @@ body {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.65;
-  font-family: sans-serif;
+  font-family: "Mono", sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -44,7 +44,6 @@ body {
     #ffb9d2 54.5%,
     #ffd28f 108.52%
   );
-  font-family: "Expanded";
 }
 
 h1,
@@ -55,6 +54,7 @@ h5,
 h6 {
   font-weight: 700;
   line-height: 1.2;
+  font-size: 16px;
 }
 
 a {
@@ -139,105 +139,149 @@ svg {
 }
 
 .wrapper {
-  height: 100%;
-  width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  display: flex;
   background: url("./noise.png");
   background-size: 600px;
   animation: 0.3s infinite static;
-  padding: 20px 0;
-  overflow: auto;
+  min-height: 100vh;
+  padding-bottom: 88px;
+  padding-top: 20px;
 }
 
 .width {
+  max-width: 500px;
+  margin: 0 auto;
   width: calc(100% - 40px);
-  margin: auto;
-  max-width: 330px;
+}
+
+.scan-button {
+  position: fixed;
+  bottom: 20px;
+  width: calc(100% - 40px);
+  background: black;
+  color: white;
+  line-height: 48px;
+  border-radius: 100px;
+  text-align: center;
+  max-width: 500px;
+  left: 50%;
+  font-family: "Expanded";
+
+  transform: translateX(-50%);
+}
+
+.kong-logo {
+  display: block;
+  margin: 20px auto 0;
+  width: 54px;
 }
 
 .box {
   background: white;
   border-radius: 30px;
-  box-shadow: 0px 2px 18px rgba(0, 0, 0, 0.1);
-  padding: 56px 32px;
-  transform: translateY(40px) scale(0.8);
-  opacity: 0;
-  transition: 0.2s opacity, 0.4s transform;
 }
 
-.ready .box {
+.scan-row {
+  width: calc(100% - 48px);
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+.scan-row + .scan-row {
+  border-top: 1px solid rgba(4, 3, 3, 0.1);
+}
+
+.scan-row-header {
+  display: flex;
+  align-items: center;
+  padding: 24px 0 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.scan-row-header span {
+  display: block;
+}
+
+.scan-row-header h2 {
+  flex: 1;
+  margin: 0 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.scan-row-header-toggle {
+  transform: rotate(-90deg);
+  transition: 0.4s transform;
+}
+
+.scan-row.active .scan-row-header-toggle {
   transform: none;
-  opacity: 1;
 }
 
-h1 {
-  border-bottom: 1px solid rgba(4, 3, 3, 0.1);
-  padding-bottom: 28px;
-  margin-bottom: 28px;
-  text-transform: uppercase;
-  font-size: 28px;
+.scan-row-toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-h2 {
-  font-family: "Mono";
-  color: rgba(4, 3, 3, 0.45);
+.scan-row-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: 0.4s max-height ease-out;
+}
+
+.scan-row-body-section {
+  padding-top: 24px;
+}
+
+.scan-row-body-section + .scan-row-body-section {
+  padding-top: 24px;
+}
+
+.scan-row.active .scan-row-body {
+  max-height: 260px;
+}
+
+.scan-row-body-heading {
   font-size: 12px;
-  font-weight: normal;
-  margin-top: 24px;
+  color: rgba(4, 3, 3, 0.45);
   margin-bottom: 5px;
 }
 
-p {
-  font-size: 15px;
-  color: #040303;
+.scan-row-body-data {
   word-break: break-all;
-  font-family: "Mono";
-  font-weight: bold;
 }
 
-.button {
-  display: block;
-  width: 100%;
+.empty {
+  padding: 24px;
   text-align: center;
-  font-size: 13px;
-  font-weight: bold;
-  color: #fff;
-  background: #040303;
-  line-height: 48px;
-  border-radius: 24px;
-  text-transform: uppercase;
-  margin-top: 24px;
-}
-
-.button + span {
-  display: block;
-  text-align: center;
-  text-transform: uppercase;
-  font-family: "Mono";
-  font-size: 12px;
   color: rgba(4, 3, 3, 0.45);
-  margin-top: 12px;
 }
 
-@keyframes fade {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 100;
-  }
+#export,
+#clear {
+  position: fixed;
+  top: 20px;
+  color: #fff;
+  border-radius: 100px;
+  font-weight: 600;
+  font-family: "Expanded";
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: black;
+  transition: 0.2s background-color;
 }
 
-svg {
-  margin: 40px auto 0;
-  opacity: 0;
-  transition: 1s opacity;
-  transition-delay: 0.3s;
+#export {
+  right: 20px;
 }
 
-.ready svg {
-  opacity: 1;
+#clear {
+  right: 70px;
+  display: none;
 }
