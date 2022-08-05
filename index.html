@@ -378,9 +378,11 @@
       );
 
       document.querySelector("#clear").addEventListener("click", function () {
-        scannedHalos = [];
-        localStorage.removeItem("halos");
-        document.querySelectorAll(".scan-row").forEach((el) => el.remove());
+        if (confirm("Clear all scanned chips?")) {
+          scannedHalos = [];
+          localStorage.removeItem("halos");
+          document.querySelectorAll(".scan-row").forEach((el) => el.remove());
+        }
       });
 
       function createRow(primary, secondary) {
