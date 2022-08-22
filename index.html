@@ -31,7 +31,21 @@
           </svg>
         </a>
 
-        <a id="scan" class="scan-button" onClick="readKeyU2F();">Scan</a>
+        <div class="scan-form">
+          <input
+            type="text"
+            class="scan-address"
+            placeholder="Enter etherium address"
+          />
+          <button
+            id="scan"
+            disabled
+            class="scan-button"
+            onClick="readKeyU2F();"
+          >
+            Scan
+          </button>
+        </div>
 
         <p id="pkey1raw" hidden>0x</p>
       </div>
@@ -218,6 +232,9 @@
 
       // Generate a command formatted for the HaLo.
       function generateCmd(cmd, keyslot, message = null) {
+        // Get address
+        var adr = document.querySelector(".scan-address").value;
+
         // EIP-191 signed data for local verification.
         let messageBytes = ethers.utils.hashMessage(message);
 
@@ -291,7 +308,7 @@
               105, 236, 120, 140, 4, 41, 65, 225, 107, 63, 214, 129, 133, 223,
               169, 200, 21, 88,
             ]),
-            rpId: "bulk.vrfy.ch",
+            rpId: "robbyk.xyz",
             timeout: 60000,
             userVerification: "discouraged",
           },
@@ -431,7 +448,11 @@
       }
 
       document.querySelector("#export").addEventListener("click", function () {
-        download(JSON.stringify(scannedHalos), "scanned-halos.json", "application/json");
+        download(
+          JSON.stringify(scannedHalos),
+          "scanned-halos.json",
+          "application/json"
+        );
       });
 
       // Populate from last time
@@ -457,6 +478,14 @@
       } catch (err) {
         console.log(err);
       }
+
+      document
+        .querySelector(".scan-address")
+        .addEventListener("input", function (e) {
+          document.querySelector("#scan").disabled = !ethers.utils.isAddress(
+            e.target.value
+          );
+        });
     </script>
   </body>
 </html>

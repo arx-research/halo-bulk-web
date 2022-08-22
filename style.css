@@ -153,20 +153,44 @@ svg {
   width: calc(100% - 40px);
 }
 
-.scan-button {
+.scan-form {
   position: fixed;
   bottom: 20px;
   width: calc(100% - 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 500px;
+}
+
+.scan-address {
+  display: block;
+  width: 100%;
+  background: white;
+  color: black;
+  line-height: 48px;
+  border-radius: 100px;
+  text-align: center;
+  font-family: "Mono";
+  margin-bottom: 10px;
+  padding: 0 24px;
+  font-size: 16px;
+}
+
+.scan-button {
+  display: block;
+  width: 100%;
   background: black;
   color: white;
   line-height: 48px;
   border-radius: 100px;
   text-align: center;
-  max-width: 500px;
-  left: 50%;
   font-family: "Expanded";
+  transition: 0.2s opacity;
+}
 
-  transform: translateX(-50%);
+.scan-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .kong-logo {
