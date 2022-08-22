@@ -4,7 +4,7 @@ This tool lets you quickly scan and save HaLo information across a large set of 
 
 # Usage
 
-The webpage must be loaded via an SSL encrypted domain for scanning to function; e.g. `https://bulk.vrfy.ch`. Tap the "Scan" button and hold a HaLo chip to the NFC antenna on your smartphone to scan.
+The webpage must be loaded via an SSL encrypted domain for scanning to function; e.g. `https://bulk.vrfy.ch`. Add the Ethereum address which you would like to sign using the chip. Tap the "Scan" button and hold a HaLo chip to the NFC antenna on your smartphone to scan.
 
 # TODOs
 
