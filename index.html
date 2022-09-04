@@ -500,7 +500,12 @@
       // Populate from last time
       try {
         const halos = localStorage.getItem("halos");
-        scannedHalos = JSON.parse(halos);
+
+        if (halos) {
+          scannedHalos = JSON.parse(halos);
+        } else {
+          scannedHalos = {};
+        }
 
         if (scannedHalos && Object.entries(scannedHalos).length > 0) {
 
