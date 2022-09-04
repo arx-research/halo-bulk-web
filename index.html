@@ -496,11 +496,9 @@
       // Populate from last time
       try {
         const halos = localStorage.getItem("halos");
+        scannedHalos = JSON.parse(halos);
 
-        if (halos && Object.entries(halos).length > 0) {
-          // const haloArr = JSON.parse(halos);
-
-          scannedHalos = JSON.parse(halos);
+        if (scannedHalos && Object.entries(scannedHalos).length > 0) {
 
           for (halo in scannedHalos) {
             var row = createRow(
