@@ -369,13 +369,13 @@
           let recover28;
 
           try {
-            recover27 = ethers.utils.recoverAddress(digest, { r: rn.toString(16), s: sn.toString(16), v: 27 })
+            recover27 = ethers.utils.recoverAddress(digest, { r: '0x' + rn.toString(16), s: '0x' + sn.toString(16), v: 27 })
           } catch(error) {
             console.error(error)
           }
           
           try {
-            recover28 = ethers.utils.recoverAddress(digest, { r: rn.toString(16), s: sn.toString(16), v: 28 })
+            recover28 = ethers.utils.recoverAddress(digest, { r: '0x' + rn.toString(16), s: '0x' + sn.toString(16), v: 28 })
           } catch(error) {
             console.error(error)
           }
