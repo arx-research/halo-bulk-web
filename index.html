@@ -358,12 +358,14 @@
           vByte[0] = 28;
           const vByte1 = buf2hex(vByte);
 
+          console.log({ r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 27 })
+
           // Recover address and compare to list.
-          if (ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: vByte0 }) == halo.address) {
+          if (ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 27 }) == halo.address) {
             console.log(`match with vbyte0`)
             foundPrimaryPublicKeyHash = halo.primaryPublicKeyHash;
             break;
-          } else if (ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: vByte1 }) == halo.address) {
+          } else if (ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 28 }) == halo.address) {
             console.log(`match with vbyte1`)
             foundPrimaryPublicKeyHash = halo.primaryPublicKeyHash;
             break;
