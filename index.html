@@ -211,8 +211,8 @@
 
         if (!dupeCheck) {
           const row = createRow(
-            keys["primaryPublicKeyHash"],
-            keys["secondaryPublicKeyHash"]
+            keys["metadata"],
+            keys["primaryPublicKeyHash"]
           );
 
           document.querySelector(".box").appendChild(row);
@@ -484,7 +484,7 @@
         console.log(err);
       }
 
-      document
+      // document
         // .querySelector(".scan-address")
         // .addEventListener("input", function (e) {
           // document.querySelector("#scan").disabled = !ethers.utils.isAddress(
