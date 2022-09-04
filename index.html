@@ -414,11 +414,12 @@
             // );
             delete scannedHalos[primaryPublicKeyHash]
 
-            if (scannedHalos.length === 0) {
+            if (Object.entries(scannedHalos).length === 0) {
               document.querySelector("#clear").style.display = "none";
             }
 
             localStorage.setItem("halos", JSON.stringify(scannedHalos));
+            console.log(`just set localstorage with ${scannedHalos}`)
           }
         },
         false
@@ -496,10 +497,10 @@
       try {
         const halos = localStorage.getItem("halos");
 
-        if (Object.entries(halos).length > 0) {
-          const haloArr = JSON.parse(halos);
+        if (halos && Object.entries(halos).length > 0) {
+          // const haloArr = JSON.parse(halos);
 
-          scannedHalos = haloArr;
+          scannedHalos = JSON.parse(halos);
 
           for (halo in scannedHalos) {
             var row = createRow(
