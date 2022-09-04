@@ -355,6 +355,7 @@
         if (sn > curveOrder / 2n) {
             // malleable signature, not compliant with Ethereum's EIP-2
             // we need to flip s value in the signature
+            console.log(`flip curve.`)
             sn = -sn + curveOrder;
         }
 
