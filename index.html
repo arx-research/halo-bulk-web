@@ -44,7 +44,6 @@
           /> -->
           <button
             id="scan"
-            disabled
             class="scan-button"
             onClick="readKeyU2F();"
           >
@@ -456,7 +455,7 @@
       document.querySelector("#export").addEventListener("click", function () {
         download(
           JSON.stringify(scannedHalos),
-          "scanned-halos.json",
+          `scanned-halos-${Date.now()}.json`,
           "application/json"
         );
       });
@@ -486,11 +485,11 @@
       }
 
       document
-        .querySelector(".scan-address")
+        // .querySelector(".scan-address")
         // .addEventListener("input", function (e) {
-        //   document.querySelector("#scan").disabled = !ethers.utils.isAddress(
-        //     e.target.value
-        //   );
+          // document.querySelector("#scan").disabled = !ethers.utils.isAddress(
+            // e.target.value
+          // );
         // });
     </script>
   </body>
