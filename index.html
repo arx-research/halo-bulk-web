@@ -34,14 +34,9 @@
         <div class="scan-form">
           <input
             type="text"
-            class="scan-address"
+            class="metadata-input"
             placeholder="Optional Metadata"
           />
-          <!-- <input
-            type="text"
-            class="scan-address"
-            placeholder="Enter Ethereum Address"
-          /> -->
           <button
             id="scan"
             class="scan-button"
@@ -49,6 +44,14 @@
           >
             Scan
           </button>
+          <button
+            disabled
+            id="sign"
+            class="sign-button"
+            onClick="signU2F();"
+          >
+            Sign
+          </button>          
         </div>
 
         <p id="pkey1raw" hidden>0x</p>
@@ -60,7 +63,7 @@
       type="text/javascript"
     ></script>
     <script>
-      let scannedHalos = [];
+      let scannedHalos = {};
 
       setTimeout(function () {
         document.querySelector("body").classList.add("ready");
@@ -197,13 +200,8 @@
       // Parsing information and storing.
       function prepareVerify(staticHaloData) {
         keys = parseKeys(buf2hex(staticHaloData));
-        keys["metadata"] = document.querySelector(".scan-address").value;
-
-        // document.getElementById("scan").innerHTML = "Verify";
-        // document.getElementById("scan").onclick = function () {
-        //   signU2F();
-        //   return false;
-        // };
+        keys["metadata"] = document.querySelector(".metadata-input").value;
+        keys["address"] = ethers.utils.computeAddress("0x" + keys["primaryPublicKeyRaw"]);
 
         var dupeCheck = document.querySelector(
           `[data-primary="${keys["primaryPublicKeyHash"]}"]`
@@ -218,30 +216,27 @@
           document.querySelector(".box").appendChild(row);
           document.querySelector(".empty")?.remove();
 
-          scannedHalos.push({
-            ...keys,
-          });
+          scannedHalos[primaryPublicKeyHash] = keys;
+          // scannedHalos.push({
+          //   ...keys,
+          // });
 
           localStorage.setItem("halos", JSON.stringify(scannedHalos));
 
           document.querySelector("#clear").style.display = "flex";
         }
-
-        // document.getElementById("pkey1").innerHTML =
-        //   keys["primaryPublicKeyHash"];
-        // document.getElementById("pkey2").innerHTML =
-        //   keys["secondaryPublicKeyHash"];
-        // document.getElementById("pkey1raw").innerHTML =
-        //   keys["primaryPublicKeyRaw"];
       }
 
       // Generate a command formatted for the HaLo.
-      function generateCmd(cmd, keyslot, message = null) {
-        // Get address
-        var adr = document.querySelector(".scan-address").value;
+      function generateCmd(cmd, keyslot, message = null, ethereumSigFormat = null) {
+        let messageBytes = null;
 
-        // EIP-191 signed data for local verification.
-        let messageBytes = ethers.utils.hashMessage(message);
+        if (ethereumSigFormat == "eip191") {
+          messageBytes = ethers.utils.hashMessage(message);
+        } else {
+          // Always fall back to EIP191.
+          messageBytes = ethers.utils.hashMessage(message);
+        }
 
         // Remove prepended 0x.
         messageBytes = messageBytes.slice(2);
@@ -331,28 +326,57 @@
 
       // Carry out a signature command against a HaLo.
       async function signU2F() {
-        document.getElementById("title1").innerHTML = "Challenge";
-        document.getElementById("title2").innerHTML = "Signature";
 
         // Generate the challenge and command bytes as 'input'.
-        const challenge = "Hello World";
-        const input = generateCmd(1, 1, challenge);
+        const challenge = document.querySelector(".metadata-input").value;
+        const input = generateCmd(1, 1, challenge, "eip191");
 
         // Send the input bytes.
         var req = fromHexString(input);
         var res = await authU2F(req);
 
-        // TODO: select the key we sign with.
-        const publickKey = document.getElementById("pkey1raw").innerText;
+        // Grab the signature response.
         const signature = buf2hex(res);
 
-        // Verify the challenge message against the signature and publicKey.
-        if (verifySignature(challenge, signature, publickKey)) {
-          document.getElementById("headerMessage").innerHTML = "HaLo Verified";
+        // Strip out DER formatting to get r and s.
+        const sigRaw = unpackDERSignature(signature);
+
+        let foundPrimaryPublicKeyHash = null;
+
+        for(halo in scannedHalos) {
+          console.log(`checking halo ${halo}`)
+
+          // We generate DER signatures, not RLP. As such we do not have the v parameter and must ascertain it.
+          let vByte = new Uint8Array(1);
+          vByte[0] = 27;
+          const vByte0 = buf2hex(vByte);
+          vByte[0] = 28;
+          const vByte1 = buf2hex(vByte);
+
+          // Recover address and compare to list.
+          if (ethers.utils.recoverAddress(input, sigRaw.r, sigRaw.s, vByte0) == halo.address) {
+            console.log(`match with vbyte0`)
+            foundPrimaryPublicKeyHash = halo.primaryPublicKeyHash;
+            break;
+          } else if (ethers.utils.recoverAddress(input, sigRaw.r, sigRaw.s, vByte0) == halo.address) {
+            console.log(`match with vbyte1`)
+            foundPrimaryPublicKeyHash = halo.primaryPublicKeyHash;
+            break;
+          } else {
+            console.log(`no match`)
+          }
         }
 
-        document.getElementById("pkey1").innerHTML = challenge;
-        document.getElementById("pkey2").innerHTML = buf2hex(res);
+        // TODO: add to file, post to server.
+        if (foundPrimaryPublicKeyHash) {
+
+          scannedHalos[foundPrimaryPublicKeyHash]["signature"] = signature;
+          localStorage.setItem("halos", JSON.stringify(scannedHalos));
+
+        } else {
+          // TODO: alert has not been scanned.
+          alert("Please scan this chip first, then sign again.")
+        }
       }
 
       //show/hide Toggle
@@ -491,13 +515,13 @@
         console.log(err);
       }
 
-      // document
-        // .querySelector(".scan-address")
-        // .addEventListener("input", function (e) {
-          // document.querySelector("#scan").disabled = !ethers.utils.isAddress(
-            // e.target.value
-          // );
-        // });
+      document
+        .querySelector(".metadata-input")
+        .addEventListener("input", function (e) {
+          document.querySelector("#sign").disabled = !ethers.utils.isAddress(
+            e.target.value
+          );
+        });
     </script>
   </body>
 </html>

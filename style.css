@@ -162,7 +162,7 @@ svg {
   max-width: 500px;
 }
 
-.scan-address {
+.metadata-input {
   display: block;
   width: 100%;
   background: white;
@@ -186,9 +186,27 @@ svg {
   text-align: center;
   font-family: "Expanded";
   transition: 0.2s opacity;
+  margin-bottom: 10px;
 }
 
 .scan-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sign-button {
+  display: block;
+  width: 100%;
+  background: rgb(36, 36, 36);
+  color: white;
+  line-height: 48px;
+  border-radius: 100px;
+  text-align: center;
+  font-family: "Expanded";
+  transition: 0.2s opacity;
+}
+
+.sign-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
