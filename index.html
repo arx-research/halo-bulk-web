@@ -334,7 +334,6 @@
         // Generate the challenge and command bytes as 'input'.
         const challenge = document.querySelector(".metadata-input").value;
         const [input, digest, ethereumSigFormat] = generateCmd(1, 1, challenge, "eip191");
-        console.log(`digest from cmd ${digest}`)
 
         // Send the input bytes.
         var req = fromHexString(input);
@@ -362,9 +361,7 @@
         let foundPrimaryPublicKeyHash = null;
 
         for(halo in scannedHalos) {
-          console.log(`checking halo ${halo}`)
-          console.log({ r: rn.toString(16), s: sn.toString(16), v: 27 })
-
+          // Test against 27 and 28; this only works if we have already stored the device address.
           let recover27;
           let recover28;
 
@@ -379,17 +376,12 @@
           } catch(error) {
             console.error(error)
           }
-          
-          console.log(`recover27 ${recover27}`)
-          console.log(`recover28 ${recover28}`)
 
           // Recover address and compare to list.
           if (recover27 && recover27 == scannedHalos[halo]["address"]) {
-            console.log(`match with vbyte0`)
             foundPrimaryPublicKeyHash = scannedHalos[halo]["primaryPublicKeyHash"];
             break;
           } else if (recover28 && recover28 == scannedHalos[halo]["address"]) {
-            console.log(`match with vbyte1`)
             foundPrimaryPublicKeyHash = scannedHalos[halo]["primaryPublicKeyHash"];
             break;
           } else {
@@ -402,7 +394,7 @@
           scannedHalos[foundPrimaryPublicKeyHash]["signature"] = signature;
           scannedHalos[foundPrimaryPublicKeyHash]["sigDigest"] = digest;
           scannedHalos[foundPrimaryPublicKeyHash]["sigMessage"] = challenge;
-          scannedHalos[foundPrimaryPublicKeyHash]["ethereumSigFormat"] = ethereumSigFormat;
+          scannedHalos[foundPrimaryPublicKeyHash]["sigFormat"] = ethereumSigFormat;
           localStorage.setItem("halos", JSON.stringify(scannedHalos));
         } else {
           // TODO: alert has not been scanned.
