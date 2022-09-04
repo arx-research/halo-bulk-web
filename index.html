@@ -211,7 +211,6 @@
 
         if (!dupeCheck) {
           const row = createRow(
-            keys["metadata"],
             keys["primaryPublicKeyHash"]
           );
 
@@ -447,9 +446,12 @@
         }
       });
 
-      function createRow(metadata, primary) {
+      function createRow(primary) {
         const el = document.createElement("div");
         el.classList.add("scan-row");
+
+        let metadata = scannedHalos[primary]["metadata"];
+        let signature = scannedHalos[primary]["signature"];
 
         if (!metadata) {
           rowTitle = primary;
@@ -483,6 +485,13 @@
                 <h3 class="scan-row-body-heading">Primary Public Key Hash</h3>
                 <p class="scan-row-body-data">
                   ${primary}
+                </p>
+              </div>
+
+              <div class="scan-row-body-section">
+                <h3 class="scan-row-body-heading">Signature</h3>
+                <p class="scan-row-body-data">
+                  ${signature}
                 </p>
               </div>
             </div>
@@ -521,7 +530,6 @@
 
           for (halo in scannedHalos) {
             var row = createRow(
-              scannedHalos[halo]["metadata"],
               scannedHalos[halo]["primaryPublicKeyHash"]
             );
 
