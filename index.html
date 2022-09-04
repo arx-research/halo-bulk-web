@@ -425,7 +425,7 @@
 
       document.querySelector("#clear").addEventListener("click", function () {
         if (confirm("Clear all scanned chips?")) {
-          scannedHalos = [];
+          scannedHalos = {};
           localStorage.removeItem("halos");
           document.querySelectorAll(".scan-row").forEach((el) => el.remove());
         }
@@ -518,7 +518,7 @@
       document
         .querySelector(".metadata-input")
         .addEventListener("input", function (e) {
-          document.querySelector("#sign").disabled = !ethers.utils.isAddress(
+          document.querySelector("#sign").disabled = !(
             e.target.value
           );
         });
