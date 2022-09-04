@@ -500,7 +500,7 @@
 
           scannedHalos = haloArr;
 
-          haloArr.forEach((halo) => {
+          for (halo in scannedHalos) {
             var row = createRow(
               halo.metadata,
               halo.primaryPublicKeyHash
@@ -508,8 +508,19 @@
 
             document.querySelector(".box").appendChild(row);
             document.querySelector(".empty")?.remove();
-            document.querySelector("#clear").style.display = "flex";
-          });
+            document.querySelector("#clear").style.display = "flex";            
+          }
+
+          // haloArr.forEach((halo) => {
+          //   var row = createRow(
+          //     halo.metadata,
+          //     halo.primaryPublicKeyHash
+          //   );
+
+          //   document.querySelector(".box").appendChild(row);
+          //   document.querySelector(".empty")?.remove();
+          //   document.querySelector("#clear").style.display = "flex";
+          // });
         }
       } catch (err) {
         console.log(err);
