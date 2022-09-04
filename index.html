@@ -409,9 +409,10 @@
             el?.remove();
 
             // Remove from saved
-            scannedHalos = scannedHalos.filter(
-              (h) => h.primaryPublicKeyHash != pk
-            );
+            // scannedHalos = scannedHalos.filter(
+            //   (h) => h.primaryPublicKeyHash != pk
+            // );
+            delete scannedHalos[primaryPublicKeyHash]
 
             if (scannedHalos.length === 0) {
               document.querySelector("#clear").style.display = "none";
@@ -495,7 +496,7 @@
       try {
         const halos = localStorage.getItem("halos");
 
-        if (halos.length > 0) {
+        if (Object.entries(halos).length > 0) {
           const haloArr = JSON.parse(halos);
 
           scannedHalos = haloArr;
