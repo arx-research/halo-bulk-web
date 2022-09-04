@@ -407,9 +407,16 @@
         }
       });
 
-      function createRow(primary, secondary) {
+      function createRow(metadata, primary) {
         const el = document.createElement("div");
         el.classList.add("scan-row");
+
+        if (!metadata) {
+          rowTitle = primary;
+          metadata = "Null"
+        } else {
+          rowTitle = metadata;
+        }
 
         el.innerHTML = `
         <header class="scan-row-header" data-primary="${primary}">
@@ -417,7 +424,7 @@
                 <img src="./x.svg" />
               </button>
               <h2>
-                ${primary}
+                ${rowTitle}
               </h2>
               <div class="scan-row-header-toggle">
                 <img src="./chevron-down.svg" />
@@ -426,16 +433,16 @@
 
             <div class="scan-row-body">
               <div class="scan-row-body-section">
-                <h3 class="scan-row-body-heading">Primary Public Key Hash</h3>
+                <h3 class="scan-row-body-heading">Metadata</h3>
                 <p class="scan-row-body-data">
-                  ${primary}
+                  ${metadata}
                 </p>
               </div>
 
               <div class="scan-row-body-section">
-                <h3 class="scan-row-body-heading">Secondary Public Key Hash</h3>
+                <h3 class="scan-row-body-heading">Primary Public Key Hash</h3>
                 <p class="scan-row-body-data">
-                  ${secondary}
+                  ${primary}
                 </p>
               </div>
             </div>
