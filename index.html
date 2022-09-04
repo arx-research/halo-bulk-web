@@ -359,13 +359,13 @@
           console.log(`recover28 ${recover28}`)
 
           // Recover address and compare to list.
-          if (recover27 && recover27 == halo.address) {
+          if (recover27 && recover27 == halo["address"]) {
             console.log(`match with vbyte0`)
-            foundPrimaryPublicKeyHash = halo.primaryPublicKeyHash;
+            foundPrimaryPublicKeyHash = halo["primaryPublicKeyHash"];
             break;
-          } else if (recover28 && recover28 == halo.address) {
+          } else if (recover28 && recover28 == halo["address"]) {
             console.log(`match with vbyte1`)
-            foundPrimaryPublicKeyHash = halo.primaryPublicKeyHash;
+            foundPrimaryPublicKeyHash = halo["primaryPublicKeyHash"];
             break;
           } else {
             console.log(`no match`)
