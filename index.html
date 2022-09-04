@@ -200,11 +200,13 @@
       // Parsing information and storing.
       function prepareVerify(staticHaloData) {
         keys = parseKeys(buf2hex(staticHaloData));
+        let primaryPublicKeyHash = keys["primaryPublicKeyHash"];
         keys["metadata"] = document.querySelector(".metadata-input").value;
         keys["address"] = ethers.utils.computeAddress("0x" + keys["primaryPublicKeyRaw"]);
 
+        // TODO: check scannedHalos as well...
         var dupeCheck = document.querySelector(
-          `[data-primary="${keys["primaryPublicKeyHash"]}"]`
+          `[data-primary="${primaryPublicKeyHash}"]`
         );
 
         if (!dupeCheck) {
