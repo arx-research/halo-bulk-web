@@ -243,7 +243,7 @@
         }
 
         // Remove prepended 0x.
-        messageBytes = messageBytes.slice(2);
+        let messageBytesSlice = messageBytes.slice(2);
 
         // Structure command bytes.
         let cmdBytes = new Uint8Array(2);
@@ -252,7 +252,7 @@
         cmdBytes = buf2hex(cmdBytes);
 
         // Prepend the message with the command.
-        inputBytes = cmdBytes + messageBytes;
+        inputBytes = cmdBytes + messageBytesSlice;
 
         return [inputBytes, messageBytes];
       }
@@ -334,6 +334,7 @@
         // Generate the challenge and command bytes as 'input'.
         const challenge = document.querySelector(".metadata-input").value;
         const [input, digest] = generateCmd(1, 1, challenge, "eip191");
+        console.log(`digest from cmd ${digest}`)
 
         // Send the input bytes.
         var req = fromHexString(input);
