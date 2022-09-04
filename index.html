@@ -502,8 +502,8 @@
 
           for (halo in scannedHalos) {
             var row = createRow(
-              halo.metadata,
-              halo.primaryPublicKeyHash
+              scannedHalos[halo]["metadata"],
+              scannedHalos[halo]["primaryPublicKeyHash"]
             );
 
             document.querySelector(".box").appendChild(row);
