@@ -426,7 +426,7 @@
             el?.remove();
 
             // Remove from saved
-            delete scannedHalos[primaryPublicKeyHash]
+            delete scannedHalos[pk]
 
             if (Object.entries(scannedHalos).length === 0) {
               document.querySelector("#clear").style.display = "none";
@@ -455,6 +455,7 @@
 
         if (!metadata) {
           rowTitle = primary;
+          metadata = "undefined"
         } else {
           rowTitle = metadata;
         }
