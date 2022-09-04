@@ -350,22 +350,34 @@
 
         for(halo in scannedHalos) {
           console.log(`checking halo ${halo}`)
-
           console.log({ r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 27 })
 
-          let recover27 = ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 27 })
-          let recover28 = ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 28 })
+          let recover27;
+          let recover28;
+
+          try {
+            recover27 = ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 27 })
+          } catch(error) {
+            console.error(error)
+          }
+          
+          try {
+            recover28 = ethers.utils.recoverAddress(digest, { r: '0x' + sigRaw.r, s: '0x' + sigRaw.s, v: 28 })
+          } catch(error) {
+            console.error(error)
+          }
+          
           console.log(`recover27 ${recover27}`)
           console.log(`recover28 ${recover28}`)
 
           // Recover address and compare to list.
-          if (recover27 && recover27 == halo["address"]) {
+          if (recover27 && recover27 == scannedHalos[halo]["address"]) {
             console.log(`match with vbyte0`)
-            foundPrimaryPublicKeyHash = halo["primaryPublicKeyHash"];
+            foundPrimaryPublicKeyHash = scannedHalos[halo]["primaryPublicKeyHash"];
             break;
-          } else if (recover28 && recover28 == halo["address"]) {
+          } else if (recover28 && recover28 == scannedHalos[halo]["address"]) {
             console.log(`match with vbyte1`)
-            foundPrimaryPublicKeyHash = halo["primaryPublicKeyHash"];
+            foundPrimaryPublicKeyHash = scannedHalos[halo]["primaryPublicKeyHash"];
             break;
           } else {
             console.log(`no match`)
