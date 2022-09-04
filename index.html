@@ -35,8 +35,13 @@
           <input
             type="text"
             class="scan-address"
-            placeholder="Enter Ethereum Address"
+            placeholder="Optional Metadata"
           />
+          <!-- <input
+            type="text"
+            class="scan-address"
+            placeholder="Enter Ethereum Address"
+          /> -->
           <button
             id="scan"
             disabled
@@ -193,6 +198,7 @@
       // Parsing information and storing.
       function prepareVerify(staticHaloData) {
         keys = parseKeys(buf2hex(staticHaloData));
+        keys["metadata"] = document.querySelector(".scan-address").value;
 
         // document.getElementById("scan").innerHTML = "Verify";
         // document.getElementById("scan").onclick = function () {
@@ -481,11 +487,11 @@
 
       document
         .querySelector(".scan-address")
-        .addEventListener("input", function (e) {
-          document.querySelector("#scan").disabled = !ethers.utils.isAddress(
-            e.target.value
-          );
-        });
+        // .addEventListener("input", function (e) {
+        //   document.querySelector("#scan").disabled = !ethers.utils.isAddress(
+        //     e.target.value
+        //   );
+        // });
     </script>
   </body>
 </html>
