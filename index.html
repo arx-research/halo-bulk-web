@@ -201,6 +201,8 @@
       function prepareVerify(staticHaloData) {
         keys = parseKeys(buf2hex(staticHaloData));
         let primaryPublicKeyHash = keys["primaryPublicKeyHash"];
+        console.log(primaryPublicKeyHash)
+        console.log(keys)
         keys["metadata"] = document.querySelector(".metadata-input").value;
         keys["address"] = ethers.utils.computeAddress("0x" + keys["primaryPublicKeyRaw"]);
 
