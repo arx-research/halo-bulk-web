@@ -166,20 +166,20 @@
         let header_s0 = sig.slice(length_r + 8, length_r + 10);
         let header_s1 = sig.slice(length_r + 10, length_r + 12);
 
-        console.log(header_s1);
+        // console.log(header_s1);
 
         if (parseInt("0x" + header_s0) !== 0x02) {
           throw Error("Invalid header (2).");
         }
 
-        console.log(length_r + 12);
-        console.log(parseInt("0x" + header_s1) * 2);
-        let s = sig.slice(
-          length_r + 12,
-          length_r + 12 + parseInt("0x" + header_s1) * 2
-        );
+        // console.log(length_r + 12);
+        // console.log(parseInt("0x" + header_s1) * 2);
+        // let s = sig.slice(
+        //   length_r + 12,
+        //   length_r + 12 + parseInt("0x" + header_s1) * 2
+        // );
 
-        console.log(s.length);
+        // console.log(s.length);
 
         if (r.length == 66) {
           r = r.slice(2, 130);
@@ -201,8 +201,6 @@
       function prepareVerify(staticHaloData) {
         keys = parseKeys(buf2hex(staticHaloData));
         let primaryPublicKeyHash = keys["primaryPublicKeyHash"];
-        console.log(primaryPublicKeyHash)
-        console.log(keys)
         keys["metadata"] = document.querySelector(".metadata-input").value;
         keys["address"] = ethers.utils.computeAddress("0x" + keys["primaryPublicKeyRaw"]);
 
@@ -354,7 +352,6 @@
         if (sn > curveOrder / 2n) {
             // malleable signature, not compliant with Ethereum's EIP-2
             // we need to flip s value in the signature
-            console.log(`flip curve.`)
             sn = -sn + curveOrder;
         }
 
@@ -384,8 +381,6 @@
           } else if (recover28 && recover28 == scannedHalos[halo]["address"]) {
             foundPrimaryPublicKeyHash = scannedHalos[halo]["primaryPublicKeyHash"];
             break;
-          } else {
-            console.log(`no match`)
           }
         }
 
@@ -439,7 +434,6 @@
             }
 
             localStorage.setItem("halos", JSON.stringify(scannedHalos));
-            console.log(`just set localstorage with ${scannedHalos}`)
           }
         },
         false
