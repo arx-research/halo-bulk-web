@@ -210,17 +210,14 @@
         );
 
         if (!dupeCheck) {
+          scannedHalos[primaryPublicKeyHash] = keys;
+
           const row = createRow(
             keys["primaryPublicKeyHash"]
           );
 
           document.querySelector(".box").appendChild(row);
           document.querySelector(".empty")?.remove();
-
-          scannedHalos[primaryPublicKeyHash] = keys;
-          // scannedHalos.push({
-          //   ...keys,
-          // });
 
           localStorage.setItem("halos", JSON.stringify(scannedHalos));
 
