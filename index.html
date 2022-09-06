@@ -450,8 +450,8 @@
         const el = document.createElement("div");
         el.classList.add("scan-row");
 
-        let metadata = scannedHalos[primary]["metadata"];
-        let signature = scannedHalos[primary]["signature"];
+        let metadata = scannedHalos[primary]["metadata"] ? scannedHalos[primary]["metadata"] : "";
+        let signature = scannedHalos[primary]["signature"] ? scannedHalos[primary]["signature"] : "";
 
         if (!metadata) {
           rowTitle = primary;
