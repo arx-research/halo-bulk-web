@@ -303,7 +303,8 @@ svg {
 }
 
 #export,
-#clear {
+#clear,
+#count {
   position: fixed;
   top: 20px;
   color: #fff;
@@ -319,11 +320,20 @@ svg {
   transition: 0.2s background-color;
 }
 
+#count {
+  right: 110px;
+  opacity: 0;
+}
+
+#count.active {
+  opacity: 1;
+}
+
 #export {
   right: 20px;
 }
 
 #clear {
-  right: 70px;
+  right: 65px;
   display: none;
 }

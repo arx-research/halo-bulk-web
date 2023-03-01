@@ -4,10 +4,11 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./style.css?3" />
+    <link rel="stylesheet" href="./style.css?!2312" />
     <title>HaLo Verify</title>
   </head>
   <body>
+    <span id="count">0</span>
     <button id="export"><img src="./download.svg" /></button>
     <button id="clear"><img src="./x-white.svg" /></button>
 
@@ -37,21 +38,12 @@
             class="metadata-input"
             placeholder="Optional Metadata"
           />
-          <button
-            id="scan"
-            class="scan-button"
-            onClick="readKeyU2F();"
-          >
+          <button id="scan" class="scan-button" onClick="readKeyU2F();">
             Scan
           </button>
-          <button
-            disabled
-            id="sign"
-            class="sign-button"
-            onClick="signU2F();"
-          >
+          <button disabled id="sign" class="sign-button" onClick="signU2F();">
             Sign
-          </button>          
+          </button>
         </div>
 
         <p id="pkey1raw" hidden>0x</p>
@@ -202,7 +194,9 @@
         keys = parseKeys(buf2hex(staticHaloData));
         let primaryPublicKeyHash = keys["primaryPublicKeyHash"];
         keys["metadata"] = document.querySelector(".metadata-input").value;
-        keys["address"] = ethers.utils.computeAddress("0x" + keys["primaryPublicKeyRaw"]);
+        keys["address"] = ethers.utils.computeAddress(
+          "0x" + keys["primaryPublicKeyRaw"]
+        );
 
         // TODO: check scannedHalos as well...
         var dupeCheck = document.querySelector(
@@ -212,9 +206,7 @@
         if (!dupeCheck) {
           scannedHalos[primaryPublicKeyHash] = keys;
 
-          const row = createRow(
-            keys["primaryPublicKeyHash"]
-          );
+          const row = createRow(keys["primaryPublicKeyHash"]);
 
           document.querySelector(".box").appendChild(row);
           document.querySelector(".empty")?.remove();
@@ -222,11 +214,22 @@
           localStorage.setItem("halos", JSON.stringify(scannedHalos));
 
           document.querySelector("#clear").style.display = "flex";
+
+          // Increment the counter
+          const countEl = document.querySelector("#count");
+          const count = Number(countEl.textContent);
+          countEl.textContent = count + 1;
+          countEl.classList.add("active");
         }
       }
 
       // Generate a command formatted for the HaLo.
-      function generateCmd(cmd, keyslot, message = null, ethereumSigFormat = null) {
+      function generateCmd(
+        cmd,
+        keyslot,
+        message = null,
+        ethereumSigFormat = null
+      ) {
         let messageBytes = null;
 
         if (ethereumSigFormat == "eip191") {
@@ -306,7 +309,7 @@
               105, 236, 120, 140, 4, 41, 65, 225, 107, 63, 214, 129, 133, 223,
               169, 200, 21, 88,
             ]),
-            rpId: "bulk.vrfy.ch",
+            rpId: "robbyk.xyz",
             timeout: 60000,
             userVerification: "discouraged",
           },
@@ -324,10 +327,14 @@
 
       // Carry out a signature command against a HaLo.
       async function signU2F() {
-
         // Generate the challenge and command bytes as 'input'.
         const challenge = document.querySelector(".metadata-input").value;
-        const [input, digest, ethereumSigFormat] = generateCmd(1, 1, challenge, "eip191");
+        const [input, digest, ethereumSigFormat] = generateCmd(
+          1,
+          1,
+          challenge,
+          "eip191"
+        );
 
         // Send the input bytes.
         var req = fromHexString(input);
@@ -340,42 +347,53 @@
         const sigRaw = unpackDERSignature(signature);
 
         // SECP256k1 order constant
-        let curveOrder = 115792089237316195423570985008687907852837564279074904382605163141518161494337n;
+        let curveOrder =
+          115792089237316195423570985008687907852837564279074904382605163141518161494337n;
 
-        let rn = BigInt('0x' + sigRaw.r.toString('hex'));
-        let sn = BigInt('0x' + sigRaw.s.toString('hex'));
+        let rn = BigInt("0x" + sigRaw.r.toString("hex"));
+        let sn = BigInt("0x" + sigRaw.s.toString("hex"));
 
         if (sn > curveOrder / 2n) {
-            // malleable signature, not compliant with Ethereum's EIP-2
-            // we need to flip s value in the signature
-            sn = -sn + curveOrder;
+          // malleable signature, not compliant with Ethereum's EIP-2
+          // we need to flip s value in the signature
+          sn = -sn + curveOrder;
         }
 
         let foundPrimaryPublicKeyHash = null;
 
-        for(halo in scannedHalos) {
+        for (halo in scannedHalos) {
           // Test against 27 and 28; this only works if we have already stored the device address.
           let recover27;
           let recover28;
 
           try {
-            recover27 = ethers.utils.recoverAddress(digest, { r: '0x' + rn.toString(16), s: '0x' + sn.toString(16), v: 27 })
-          } catch(error) {
-            console.error(error)
+            recover27 = ethers.utils.recoverAddress(digest, {
+              r: "0x" + rn.toString(16),
+              s: "0x" + sn.toString(16),
+              v: 27,
+            });
+          } catch (error) {
+            console.error(error);
           }
-          
+
           try {
-            recover28 = ethers.utils.recoverAddress(digest, { r: '0x' + rn.toString(16), s: '0x' + sn.toString(16), v: 28 })
-          } catch(error) {
-            console.error(error)
+            recover28 = ethers.utils.recoverAddress(digest, {
+              r: "0x" + rn.toString(16),
+              s: "0x" + sn.toString(16),
+              v: 28,
+            });
+          } catch (error) {
+            console.error(error);
           }
 
           // Recover address and compare to list.
           if (recover27 && recover27 == scannedHalos[halo]["address"]) {
-            foundPrimaryPublicKeyHash = scannedHalos[halo]["primaryPublicKeyHash"];
+            foundPrimaryPublicKeyHash =
+              scannedHalos[halo]["primaryPublicKeyHash"];
             break;
           } else if (recover28 && recover28 == scannedHalos[halo]["address"]) {
-            foundPrimaryPublicKeyHash = scannedHalos[halo]["primaryPublicKeyHash"];
+            foundPrimaryPublicKeyHash =
+              scannedHalos[halo]["primaryPublicKeyHash"];
             break;
           }
         }
@@ -385,11 +403,12 @@
           scannedHalos[foundPrimaryPublicKeyHash]["signature"] = signature;
           scannedHalos[foundPrimaryPublicKeyHash]["sigDigest"] = digest;
           scannedHalos[foundPrimaryPublicKeyHash]["sigMessage"] = challenge;
-          scannedHalos[foundPrimaryPublicKeyHash]["sigFormat"] = ethereumSigFormat;
+          scannedHalos[foundPrimaryPublicKeyHash]["sigFormat"] =
+            ethereumSigFormat;
           localStorage.setItem("halos", JSON.stringify(scannedHalos));
         } else {
           // TODO: alert has not been scanned.
-          alert("Please scan this chip first, then sign again.")
+          alert("Please scan this chip first, then sign again.");
         }
       }
 
@@ -423,13 +442,19 @@
             el?.remove();
 
             // Remove from saved
-            delete scannedHalos[pk]
+            delete scannedHalos[pk];
 
             if (Object.entries(scannedHalos).length === 0) {
               document.querySelector("#clear").style.display = "none";
             }
 
             localStorage.setItem("halos", JSON.stringify(scannedHalos));
+
+            // Decrement counter
+            const countEl = document.querySelector("#count");
+            const count = Number(countEl.textContent);
+            countEl.textContent = count - 1;
+            if (count === 1) countEl.classList.remove("active");
           }
         },
         false
@@ -447,12 +472,16 @@
         const el = document.createElement("div");
         el.classList.add("scan-row");
 
-        let metadata = scannedHalos[primary]["metadata"] ? scannedHalos[primary]["metadata"] : "";
-        let signature = scannedHalos[primary]["signature"] ? scannedHalos[primary]["signature"] : "";
+        let metadata = scannedHalos[primary]["metadata"]
+          ? scannedHalos[primary]["metadata"]
+          : "";
+        let signature = scannedHalos[primary]["signature"]
+          ? scannedHalos[primary]["signature"]
+          : "";
 
         if (!metadata) {
           rowTitle = primary;
-          metadata = "undefined"
+          metadata = "undefined";
         } else {
           rowTitle = metadata;
         }
@@ -524,16 +553,19 @@
         }
 
         if (scannedHalos && Object.entries(scannedHalos).length > 0) {
-
           for (halo in scannedHalos) {
-            var row = createRow(
-              scannedHalos[halo]["primaryPublicKeyHash"]
-            );
+            var row = createRow(scannedHalos[halo]["primaryPublicKeyHash"]);
 
             document.querySelector(".box").appendChild(row);
             document.querySelector(".empty")?.remove();
-            document.querySelector("#clear").style.display = "flex";            
-          } 
+            document.querySelector("#clear").style.display = "flex";
+          }
+
+          // Set counter
+          const countEl = document.querySelector("#count");
+          const count = Object.entries(scannedHalos).length;
+          countEl.textContent = count;
+          countEl.classList.add("active");
         }
       } catch (err) {
         console.log(err);
@@ -542,9 +574,7 @@
       document
         .querySelector(".metadata-input")
         .addEventListener("input", function (e) {
-          document.querySelector("#sign").disabled = !(
-            e.target.value
-          );
+          document.querySelector("#sign").disabled = !e.target.value;
         });
     </script>
   </body>
