@@ -167,7 +167,8 @@ svg {
   width: 100%;
   background: white;
   color: black;
-  line-height: 48px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  line-height: 46px;
   border-radius: 100px;
   text-align: center;
   font-family: "Mono";
@@ -215,6 +216,7 @@ svg {
   display: block;
   margin: 20px auto 0;
   width: 54px;
+  color: black;
 }
 
 .box {
