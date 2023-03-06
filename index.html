@@ -460,6 +460,11 @@
           scannedHalos = {};
           localStorage.removeItem("halos");
           document.querySelectorAll(".scan-row").forEach((el) => el.remove());
+
+          const countEl = document.querySelector("#count");
+          countEl.textContent = 0;
+          countEl.classList.remove("active");
+          document.querySelector("#clear").style.display = "none";
         }
       });
 
