@@ -8,10 +8,6 @@
     <title>HaLo Verify</title>
   </head>
   <body>
-    <!-- <span id="count">0</span>
-    <button id="export"><img src="./download.svg" /></button>
-    <button id="clear"><img src="./x-white.svg" /></button> -->
-
     <div class="width">
       <div class="blue-box">
         <header class="header">
@@ -23,9 +19,9 @@
           </svg>
 
           <div class="header-buttons">
-            <span class="icon-button" id="count">0</span>
+            <span class="icon-button hide" id="count">0</span>
 
-            <button class="icon-button" id="export">
+            <button class="icon-button hide" id="export">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="10"
@@ -43,7 +39,7 @@
               </svg>
             </button>
 
-            <button class="icon-button" id="clear">
+            <button class="icon-button hide" id="clear">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="10"
@@ -65,153 +61,7 @@
 
         <p class="empty-text">Tap Scan and hold HaLo to phone NFC antenna.</p>
 
-        <div class="records">
-          <div class="record">
-            <div class="record-header">
-              <button class="record-header-delete">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="17"
-                  fill="none"
-                  viewBox="0 0 16 17"
-                >
-                  <g clip-path="url(#a)">
-                    <path
-                      fill="#FE0133"
-                      d="M8 16.5a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"
-                    />
-                    <path
-                      stroke="#FCFCFC"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="m10 10.5-4-4M6 10.5l4-4"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="a">
-                      <path fill="#fff" d="M0 .5h16v16H0z" />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </button>
-              <div class="record-header-pk">
-                <div class="record-header-pk-start">
-                  0xb2E0F4dee26CcCf1f3A267Ad185f2b2E0F4dee26CcCf1f3A26
-                </div>
-                <div class="record-header-pk-end">85f2</div>
-              </div>
-              <div class="record-header-chevron">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="7"
-                  fill="none"
-                  viewBox="0 0 10 7"
-                >
-                  <path
-                    stroke="#0C0C0C"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m5 5.5-4-4M5 5.5l4-4"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div class="record-body">
-              <div class="record-body-section">
-                <h2>Metadata</h2>
-                <div class="record-body-section-box">Blah blah blah</div>
-              </div>
-              <div class="record-body-section">
-                <h2>Primary public key</h2>
-                <div class="record-body-section-box">
-                  0xb2E0F4dee26CcCf1f3A267Ad185f2b2E0F4dee26CcCf1f3A262E0F4dee26CcCf1f3A26
-                </div>
-              </div>
-              <div class="record-body-section">
-                <h2>Signature</h2>
-                <div class="record-body-section-box">
-                  0xb2E0F4dee26CcCf1f3A267Ad185f2b2E0F4dee26CcCf1f3A26
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="record">
-            <div class="record-header">
-              <button class="record-header-delete">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="17"
-                  fill="none"
-                  viewBox="0 0 16 17"
-                >
-                  <g clip-path="url(#a)">
-                    <path
-                      fill="#FE0133"
-                      d="M8 16.5a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"
-                    />
-                    <path
-                      stroke="#FCFCFC"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="m10 10.5-4-4M6 10.5l4-4"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="a">
-                      <path fill="#fff" d="M0 .5h16v16H0z" />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </button>
-              <div class="record-header-pk">
-                <div class="record-header-pk-start">
-                  0xb2E0F4dee26CcCf1f3A267Ad185f2b2E0F4dee26CcCf1f3A26
-                </div>
-                <div class="record-header-pk-end">85f2</div>
-              </div>
-              <div class="record-header-chevron">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="7"
-                  fill="none"
-                  viewBox="0 0 10 7"
-                >
-                  <path
-                    stroke="#0C0C0C"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m5 5.5-4-4M5 5.5l4-4"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div class="record-body">
-              <div class="record-body-section">
-                <h2>Metadata</h2>
-                <div class="record-body-section-box">Blah blah blah</div>
-              </div>
-              <div class="record-body-section">
-                <h2>Primary public key</h2>
-                <div class="record-body-section-box">
-                  0xb2E0F4dee26CcCf1f3A267Ad185f2b2E0F4dee26CcCf1f3A262E0F4dee26CcCf1f3A26
-                </div>
-              </div>
-              <div class="record-body-section">
-                <h2>Signature</h2>
-                <div class="record-body-section-box">
-                  0xb2E0F4dee26CcCf1f3A267Ad185f2b2E0F4dee26CcCf1f3A26
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="records"></div>
       </div>
 
       <p id="pkey1raw" hidden>0x</p>
@@ -270,7 +120,7 @@
             </button>
             <button
               disabled
-              id=""
+              id="sign"
               class="button full-width icon-right sign-button"
               onClick="signU2F();"
             >

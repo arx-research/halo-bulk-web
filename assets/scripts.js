@@ -1,13 +1,14 @@
+// State
 let scannedHalos = {};
-
-setTimeout(function () {
-  document.querySelector("body").classList.add("ready");
-}, 400);
-
 let currentURL = new URL(window.location.href);
+const staticHaloData = currentURL.searchParams.get("static");
 
-const fromHexString = (hexString) =>
-  new Uint8Array(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+// Helper functions
+const fromHexString = (hexString) => {
+  return new Uint8Array(
+    hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+  );
+};
 
 function buf2hex(buffer) {
   // buffer is an ArrayBuffer
@@ -76,7 +77,6 @@ function parseKeys(payload) {
   return keys;
 }
 
-// This shit is nasty.
 function unpackDERSignature(sig) {
   let header0 = sig.slice(0, 2);
   if (parseInt("0x" + header0) !== 0x30) {
@@ -125,39 +125,39 @@ function unpackDERSignature(sig) {
   };
 }
 
-const staticHaloData = currentURL.searchParams.get("static");
-
-// Parsing information and storing.
 function prepareVerify(staticHaloData) {
-  keys = parseKeys(buf2hex(staticHaloData));
+  let keys = parseKeys(buf2hex(staticHaloData));
   let primaryPublicKeyHash = keys["primaryPublicKeyHash"];
   keys["metadata"] = document.querySelector(".metadata-input").value;
   keys["address"] = ethers.utils.computeAddress(
     "0x" + keys["primaryPublicKeyRaw"]
   );
 
-  // TODO: check scannedHalos as well...
-  var dupeCheck = document.querySelector(
-    `[data-primary="${primaryPublicKeyHash}"]`
-  );
+  const recordExists = scannedHalos[primaryPublicKeyHash] !== undefined;
 
-  if (!dupeCheck) {
+  if (!recordExists) {
+    // Add to data object
     scannedHalos[primaryPublicKeyHash] = keys;
 
-    const row = createRow(keys["primaryPublicKeyHash"]);
+    // Create row html
+    const row = buildRow(keys["primaryPublicKeyHash"]);
 
-    document.querySelector(".box").appendChild(row);
-    document.querySelector(".empty")?.remove();
+    // Append it
+    document.querySelector(".records").appendChild(row);
 
+    // Hide the empty text
+    document.querySelector(".empty-text").classList.add("hide");
+    document.querySelector("#export").classList.remove("hide");
+    document.querySelector("#clear").classList.remove("hide");
+
+    // Store it
     localStorage.setItem("halos", JSON.stringify(scannedHalos));
 
+    // Display the clear all button
     document.querySelector("#clear").style.display = "flex";
 
-    // Increment the counter
-    const countEl = document.querySelector("#count");
-    const count = Number(countEl.textContent);
-    countEl.textContent = count + 1;
-    countEl.classList.add("active");
+    // Update counter
+    updateCounter();
   }
 }
 
@@ -221,10 +221,6 @@ function verifySignature(message, signature, publicKey) {
     default:
       return false;
   }
-}
-
-if (staticHaloData) {
-  prepareVerify(staticHaloData);
 }
 
 async function authU2F(reqx) {
@@ -342,34 +338,94 @@ async function signU2F() {
   }
 }
 
-//show/hide Toggle
-document.addEventListener(
-  "click",
-  function (event) {
-    if (event.target.matches(".scan-row-header, .scan-row-header *")) {
-      event.preventDefault();
-      event.target.closest(".scan-row").classList.toggle("active");
+function splitString(str) {
+  const last4 = str.substr(str.length - 4);
+  const rest = str.slice(0, -4);
+  return { start: rest, end: last4 };
+}
+
+function buildRow(primary) {
+  const record = scannedHalos[primary];
+  const el = document.createElement("div");
+  el.classList.add("record");
+  el.setAttribute("data-primary", primary);
+
+  const pkSplit = splitString(primary);
+
+  el.innerHTML = `
+  <div class="record-header">
+    <button class="record-header-delete">
+      <img src="./assets/delete.svg">
+    </button>
+    <div class="record-header-pk">
+      <div class="record-header-pk-start">
+        ${pkSplit.start}
+      </div>
+      <div class="record-header-pk-end">${pkSplit.end}</div>
+    </div>
+    <div class="record-header-chevron">
+      <img src="./assets/chevron-down.svg">
+    </div>
+  </div>
+  <div class="record-body">
+    ${
+      record.metadata
+        ? `<div class="record-body-section">
+      <h2>Metadata</h2>
+      <div class="record-body-section-box">${record.metadata}</div>
+    </div>`
+        : ""
     }
-  },
-  false
-);
+    <div class="record-body-section">
+      <h2>Primary public key</h2>
+      <div class="record-body-section-box">
+        ${record.primaryPublicKeyRaw}
+      </div>
+    </div>
+    <div class="record-body-section">
+      <h2>Address</h2>
+      <div class="record-body-section-box">
+        ${record.address}
+      </div>
+    </div>
+  </div>
+  `;
+
+  return el;
+}
+
+function updateCounter() {
+  const countEl = document.querySelector("#count");
+  const count = Object.entries(scannedHalos).length;
+  countEl.textContent = count;
+
+  if (count === 0) {
+    countEl.classList.add("hide");
+  } else {
+    countEl.classList.remove("hide");
+  }
+}
+
+// Putting it all together!
+if (staticHaloData) {
+  prepareVerify(staticHaloData);
+}
 
 document.addEventListener(
   "click",
-  function (event) {
-    if (
-      event.target.matches(".scan-row-header-remove, .scan-row-header-remove *")
-    ) {
-      event.preventDefault();
-      const el = event.target.closest(".scan-row");
-      const pk = el
-        .querySelector(".scan-row-header")
-        .getAttribute("data-primary");
+  function (e) {
+    const isDelete = e.target.matches(
+      ".record-header-delete, .record-header-delete *"
+    );
 
-      // Remove el
+    const isHeader = e.target.matches(".record-header, .record-header *");
+
+    if (isDelete) {
+      e.preventDefault();
+      const el = e.target.closest(".record");
+      const pk = el.getAttribute("data-primary");
+
       el?.remove();
-
-      // Remove from saved
       delete scannedHalos[pk];
 
       if (Object.entries(scannedHalos).length === 0) {
@@ -379,10 +435,17 @@ document.addEventListener(
       localStorage.setItem("halos", JSON.stringify(scannedHalos));
 
       // Decrement counter
-      const countEl = document.querySelector("#count");
-      const count = Number(countEl.textContent);
-      countEl.textContent = count - 1;
-      if (count === 1) countEl.classList.remove("active");
+      updateCounter();
+
+      // Show empty text again
+      if (document.querySelectorAll(".record").length === 0) {
+        document.querySelector(".empty-text").classList.remove("hide");
+        document.querySelector("#export").classList.add("hide");
+        document.querySelector("#clear").classList.add("hide");
+      }
+    } else if (isHeader) {
+      e.preventDefault();
+      e.target.closest(".record").classList.toggle("active");
     }
   },
   false
@@ -392,72 +455,15 @@ document.querySelector("#clear").addEventListener("click", function () {
   if (confirm("Clear all scanned chips?")) {
     scannedHalos = {};
     localStorage.removeItem("halos");
-    document.querySelectorAll(".scan-row").forEach((el) => el.remove());
+    document.querySelectorAll(".record").forEach((el) => el.remove());
 
-    const countEl = document.querySelector("#count");
-    countEl.textContent = 0;
-    countEl.classList.remove("active");
-    document.querySelector("#clear").style.display = "none";
+    document.querySelector("#clear").classList.add("hide");
+    document.querySelector("#export").classList.add("hide");
+    document.querySelector(".empty-text").classList.add("hide");
+
+    updateCounter();
   }
 });
-
-function createRow(primary) {
-  const el = document.createElement("div");
-  el.classList.add("scan-row");
-
-  let metadata = scannedHalos[primary]["metadata"]
-    ? scannedHalos[primary]["metadata"]
-    : "";
-  let signature = scannedHalos[primary]["signature"]
-    ? scannedHalos[primary]["signature"]
-    : "";
-
-  if (!metadata) {
-    rowTitle = primary;
-    metadata = "undefined";
-  } else {
-    rowTitle = metadata;
-  }
-
-  el.innerHTML = `
-  <header class="scan-row-header" data-primary="${primary}">
-        <button class="scan-row-header-remove">
-          <img src="./x.svg" />
-        </button>
-        <h2>
-          ${rowTitle}
-        </h2>
-        <div class="scan-row-header-toggle">
-          <img src="./chevron-down.svg" />
-        </div>
-      </header>
-
-      <div class="scan-row-body">
-        <div class="scan-row-body-section">
-          <h3 class="scan-row-body-heading">Metadata</h3>
-          <p class="scan-row-body-data">
-            ${metadata}
-          </p>
-        </div>
-
-        <div class="scan-row-body-section">
-          <h3 class="scan-row-body-heading">Primary Public Key Hash</h3>
-          <p class="scan-row-body-data">
-            ${primary}
-          </p>
-        </div>
-
-        <div class="scan-row-body-section">
-          <h3 class="scan-row-body-heading">Signature</h3>
-          <p class="scan-row-body-data">
-            ${signature}
-          </p>
-        </div>
-      </div>
-  `;
-
-  return el;
-}
 
 function download(content, fileName, contentType) {
   var a = document.createElement("a");
@@ -487,18 +493,16 @@ try {
 
   if (scannedHalos && Object.entries(scannedHalos).length > 0) {
     for (halo in scannedHalos) {
-      var row = createRow(scannedHalos[halo]["primaryPublicKeyHash"]);
-
-      document.querySelector(".box").appendChild(row);
-      document.querySelector(".empty")?.remove();
-      document.querySelector("#clear").style.display = "flex";
+      var row = buildRow(scannedHalos[halo]["primaryPublicKeyHash"]);
+      document.querySelector(".records").appendChild(row);
     }
 
+    document.querySelector("#clear").classList.remove("hide");
+    document.querySelector("#export").classList.remove("hide");
+    document.querySelector(".empty-text").classList.add("hide");
+
     // Set counter
-    const countEl = document.querySelector("#count");
-    const count = Object.entries(scannedHalos).length;
-    countEl.textContent = count;
-    countEl.classList.add("active");
+    updateCounter();
   }
 } catch (err) {
   console.log(err);
@@ -509,21 +513,3 @@ document
   .addEventListener("input", function (e) {
     document.querySelector("#sign").disabled = !e.target.value;
   });
-
-document.addEventListener(
-  "click",
-  function (e) {
-    const isDelete = e.target.matches(
-      ".record-header-delete, .record-header-delete *"
-    );
-
-    const isHeader = e.target.matches(".record-header, .record-header *");
-
-    if (isDelete) {
-      console.log("delete");
-    } else if (isHeader) {
-      e.target.closest(".record").classList.toggle("active");
-    }
-  },
-  false
-);
