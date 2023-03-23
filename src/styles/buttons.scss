@@ -1,0 +1,41 @@
+.button {
+  display: inline-block;
+  padding: 0 24px;
+  text-align: center;
+  background: var(--primary);
+  color: var(--primaryText);
+  border-radius: 30px;
+  line-height: 50px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.button.full-width {
+  display: block;
+  width: 100%;
+}
+
+.button.icon-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.button:disabled,
+.button:disabled:hover {
+  cursor: not-allowed;
+  background: var(--buttonDisabledBg);
+  color: var(--buttonDisabledText);
+}
+
+.icon-button {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: 50%;
+  font-weight: 600;
+}

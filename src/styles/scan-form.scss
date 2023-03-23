@@ -1,0 +1,114 @@
+.scan-form-wrap {
+  background: var(--bg);
+  padding: 10px 0 20px 0;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  width: 100%;
+}
+
+.scan-form-wrap:after {
+  bottom: 100%;
+  left: 0;
+  content: "";
+  height: 30px;
+  background: linear-gradient(rgba(0, 0, 0, 0), var(--bg));
+  width: 100%;
+  position: absolute;
+}
+
+.scan-form {
+}
+
+.scan-form-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.kong-logo {
+  display: block;
+  margin: 20px auto 0;
+  width: 54px;
+  color: black;
+}
+
+.box {
+  background: white;
+  border-radius: 30px;
+}
+
+.scan-row {
+  width: calc(100% - 48px);
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+.scan-row + .scan-row {
+  border-top: 1px solid rgba(4, 3, 3, 0.1);
+}
+
+.scan-row-header {
+  display: flex;
+  align-items: center;
+  padding: 24px 0 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.scan-row-header span {
+  display: block;
+}
+
+.scan-row-header h2 {
+  flex: 1;
+  margin: 0 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.scan-row-header-toggle {
+  transform: rotate(-90deg);
+  transition: 0.4s transform;
+}
+
+.scan-row.active .scan-row-header-toggle {
+  transform: none;
+}
+
+.scan-row-toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-row-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: 0.4s max-height ease-out;
+}
+
+.scan-row-body-section {
+  padding-top: 24px;
+}
+
+.scan-row-body-section + .scan-row-body-section {
+  padding-top: 24px;
+}
+
+.scan-row.active .scan-row-body {
+  max-height: 260px;
+}
+
+.scan-row-body-heading {
+  font-size: 12px;
+  color: rgba(4, 3, 3, 0.45);
+  margin-bottom: 5px;
+}
+
+.scan-row-body-data {
+  word-break: break-all;
+}
