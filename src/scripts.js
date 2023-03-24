@@ -12,6 +12,8 @@ import {
 } from './js/helpers'
 import wsp from './js/ws'
 import parseKeysCli from './js/helpers/parseKeysCli'
+import { execHaloCmdWeb } from '@arx-research/libhalo'
+import generateDigest from './js/helpers/generateDigest'
 
 // State
 let scannedHalos = {}
@@ -61,80 +63,114 @@ async function readKeyU2F() {
 
 // Carry out a signature command against a HaLo.
 async function signU2F() {
-  // Generate the challenge and command bytes as 'input'.
   const challenge = document.querySelector('.metadata-input').value
-  const [input, digest, ethereumSigFormat] = generateCmd(1, 1, challenge, 'eip191')
 
-  // Send the input bytes.
-  var req = fromHexString(input)
-  var res = await authU2F(req)
-
-  // Grab the signature response.
-  const signature = buf2hex(res)
-
-  // Strip out DER formatting to get r and s.
-  const sigRaw = unpackDERSignature(signature)
-
-  // SECP256k1 order constant
-  let curveOrder = 115792089237316195423570985008687907852837564279074904382605163141518161494337n
-
-  let rn = BigInt('0x' + sigRaw.r.toString('hex'))
-  let sn = BigInt('0x' + sigRaw.s.toString('hex'))
-
-  if (sn > curveOrder / 2n) {
-    // malleable signature, not compliant with Ethereum's EIP-2
-    // we need to flip s value in the signature
-    sn = -sn + curveOrder
+  let command = {
+    name: 'sign',
+    keyNo: 1,
+    digest: generateDigest(challenge),
   }
 
-  let foundPrimaryPublicKeyHash = null
-
-  for (halo in scannedHalos) {
-    // Test against 27 and 28; this only works if we have already stored the device address.
-    let recover27
-    let recover28
-
-    try {
-      recover27 = ethers.utils.recoverAddress(digest, {
-        r: '0x' + rn.toString(16),
-        s: '0x' + sn.toString(16),
-        v: 27,
-      })
-    } catch (error) {
-      console.error(error)
-    }
-
-    try {
-      recover28 = ethers.utils.recoverAddress(digest, {
-        r: '0x' + rn.toString(16),
-        s: '0x' + sn.toString(16),
-        v: 28,
-      })
-    } catch (error) {
-      console.error(error)
-    }
-
-    // Recover address and compare to list.
-    if (recover27 && recover27 == scannedHalos[halo]['address']) {
-      foundPrimaryPublicKeyHash = scannedHalos[halo]['primaryPublicKeyHash']
-      break
-    } else if (recover28 && recover28 == scannedHalos[halo]['address']) {
-      foundPrimaryPublicKeyHash = scannedHalos[halo]['primaryPublicKeyHash']
-      break
-    }
+  try {
+    let res = await execHaloCmdWeb(command)
+    // display operation result
+    document.getElementById('console').innerText = JSON.stringify(res, null, 4)
+  } catch (e) {
+    // display error
+    document.getElementById('console').innerText = e
   }
 
-  // TODO: add to file, post to server.
-  if (foundPrimaryPublicKeyHash) {
-    scannedHalos[foundPrimaryPublicKeyHash]['signature'] = signature
-    scannedHalos[foundPrimaryPublicKeyHash]['sigDigest'] = digest
-    scannedHalos[foundPrimaryPublicKeyHash]['sigMessage'] = challenge
-    scannedHalos[foundPrimaryPublicKeyHash]['sigFormat'] = ethereumSigFormat
-    localStorage.setItem('halos', JSON.stringify(scannedHalos))
-  } else {
-    // TODO: alert has not been scanned.
-    alert('Please scan this chip first, then sign again.')
-  }
+  console.log(command)
+
+  // document.getElementById('statusText').innerText = 'Please tap NFC tag to the back of your smartphone...'
+
+  // try {
+  //   let res = await execHaloCmdWeb(command)
+  //   // display operation result
+  //   document.getElementById('statusText').innerText = JSON.stringify(res, null, 4)
+  // } catch (e) {
+  //   // display error
+  //   document.getElementById('statusText').innerText = e
+  // }
+
+  // // Get the text they
+  // const challenge = document.querySelector('.metadata-input').value
+
+  // // Generate the challenge and command bytes as 'input'.
+  // const [input, digest, ethereumSigFormat] = generateCmd(1, 1, challenge, 'eip191')
+
+  // // Send the input bytes.
+  // var req = fromHexString(input)
+  // var res = await authU2F(req)
+
+  // // Grab the signature response.
+  // const signature = buf2hex(res)
+
+  // // Strip out DER formatting to get r and s.
+  // const sigRaw = unpackDERSignature(signature)
+
+  // // SECP256k1 order constant
+  // let curveOrder = 115792089237316195423570985008687907852837564279074904382605163141518161494337n
+
+  // let rn = BigInt('0x' + sigRaw.r.toString('hex'))
+  // let sn = BigInt('0x' + sigRaw.s.toString('hex'))
+
+  // if (sn > curveOrder / 2n) {
+  //   // malleable signature, not compliant with Ethereum's EIP-2
+  //   // we need to flip s value in the signature
+  //   sn = -sn + curveOrder
+  // }
+
+  // let foundPrimaryPublicKeyHash = null
+
+  // for (halo in scannedHalos) {
+  //   // Test against 27 and 28; this only works if we have already stored the device address.
+  //   let recover27
+  //   let recover28
+
+  //   try {
+  //     recover27 = ethers.utils.recoverAddress(digest, {
+  //       r: '0x' + rn.toString(16),
+  //       s: '0x' + sn.toString(16),
+  //       v: 27,
+  //     })
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+
+  //   try {
+  //     recover28 = ethers.utils.recoverAddress(digest, {
+  //       r: '0x' + rn.toString(16),
+  //       s: '0x' + sn.toString(16),
+  //       v: 28,
+  //     })
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+
+  //   // Recover address and compare to list.
+  //   if (recover27 && recover27 == scannedHalos[halo]['address']) {
+  //     foundPrimaryPublicKeyHash = scannedHalos[halo]['primaryPublicKeyHash']
+  //     break
+  //   } else if (recover28 && recover28 == scannedHalos[halo]['address']) {
+  //     foundPrimaryPublicKeyHash = scannedHalos[halo]['primaryPublicKeyHash']
+  //     break
+  //   }
+  // }
+
+  // // TODO: add to file, post to server.
+  // if (foundPrimaryPublicKeyHash) {
+  //   scannedHalos[foundPrimaryPublicKeyHash]['signature'] = signature
+  //   scannedHalos[foundPrimaryPublicKeyHash]['sigDigest'] = digest
+  //   scannedHalos[foundPrimaryPublicKeyHash]['sigMessage'] = challenge
+  //   scannedHalos[foundPrimaryPublicKeyHash]['sigFormat'] = ethereumSigFormat
+  //   localStorage.setItem('halos', JSON.stringify(scannedHalos))
+
+  //   alert('sign successful?')
+  // } else {
+  //   // TODO: alert has not been scanned.
+  //   alert('Please scan this chip first, then sign again.')
+  // }
 }
 
 function buildRow(primary) {
@@ -335,8 +371,14 @@ async function processTag(handle) {
   // console.log(JSON.stringify(res))
 }
 
+let readerMode = false
+
 // Listen to events
 wsp.onUnpackedMessage.addListener(async (ev) => {
+  if (ev.event === 'ws_connected') {
+    readerMode = true
+  }
+
   if (ev.event !== 'exec_success' && ev.event !== 'exec_exception') {
     // console.log(JSON.stringify(ev))
   }

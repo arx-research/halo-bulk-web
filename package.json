@@ -36,6 +36,8 @@
 
   "dependencies": {
 
+    "@arx-research/libhalo": "^1.1.13",
+
     "websocket-as-promised": "^2.0.1"
 
   }
