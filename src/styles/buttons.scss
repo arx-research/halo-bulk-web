@@ -27,6 +27,10 @@
   cursor: not-allowed;
   background: var(--buttonDisabledBg);
   color: var(--buttonDisabledText);
+
+  img {
+    opacity: 0.45;
+  }
 }
 
 .icon-button {

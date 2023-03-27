@@ -10,11 +10,14 @@
   --inputPlaceholderText: #9d9d9d;
   --cards: #fcfcfc;
   --cardsText: #0c0c0c;
+  --cardsMediumText: #696969;
   --cardsBorder: #dcdcdc;
   --cardsBox: #f2f2f2;
   --cardsLightText: #a3a3a3;
   --danger: #fe0133;
   --scanFormHeight: 146px;
+  --fadeOff: right 0s 0.15s, opacity 0.15s;
+  --fadeOn: right 0s, opacity 0.15s;
 }
 @font-face {
   font-family: "Roobert";
@@ -138,6 +141,10 @@ body .hide {
   background: var(--buttonDisabledBg);
   color: var(--buttonDisabledText);
 }
+.button:disabled img,
+.button:disabled:hover img {
+  opacity: 0.45;
+}
 .icon-button {
   width: 24px;
   height: 24px;
@@ -220,7 +227,7 @@ body .hide {
 .record-header-chevron {
   transition: 0.2s transform;
 }
-.record.active .record-header-chevron {
+.record.record--active .record-header-chevron {
   transform: rotate(180deg);
 }
 .record-header-delete {
@@ -233,7 +240,7 @@ body .hide {
   padding: 0 16px;
   display: none;
 }
-.record.active .record-body {
+.record.record--active .record-body {
   display: block;
 }
 .record-body-section {
@@ -343,5 +350,57 @@ body .hide {
 }
 .scan-row-body-data {
   word-break: break-all;
+}
+.settings-dropdown {
+  position: relative;
+}
+.settings-dropdown-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 9999px;
+  opacity: 0;
+  transition: var(--fadeOff);
+  border-radius: 10px;
+  background: var(--cardsBox);
+  z-index: 10;
+  width: 160px;
+  color: var(--cardsText);
+  margin-top: 15px;
+}
+.settings-dropdown-active .settings-dropdown-dropdown {
+  right: -10px;
+  opacity: 1;
+  transition: var(--fadeOn);
+}
+.settings-dropdown-dropdown:before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  top: 4px;
+  right: 16px;
+  background: var(--cardsBox);
+  transform: rotate(45deg) translate(-50%, -50%);
+}
+.settings-dropdown-dropdown-option {
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.settings-dropdown-dropdown-option + .settings-dropdown-dropdown-option {
+  border-top: 1px solid var(--cardsBorder);
+}
+.settings-dropdown-dropdown-option input {
+  display: none;
+}
+.settings-dropdown-dropdown-option label {
+  color: var(--cardsMediumText);
+  display: block;
+  width: 100%;
+}
+.settings-dropdown-dropdown-option input:checked + label,
+.settings-dropdown-dropdown-option label:hover {
+  color: var(--cardsText);
 }
 /*# sourceMappingURL=style.css.map */

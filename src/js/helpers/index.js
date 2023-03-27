@@ -7,6 +7,7 @@ import parseKeys from './parseKeys'
 import splitHash from './splitHash'
 import unpackDERSignature from './unpackDERSignature'
 import verifySignature from './verifySignature'
+import parseKeysCli from './parseKeysCli'
 
 export {
   authU2F,
@@ -18,4 +19,5 @@ export {
   splitHash,
   unpackDERSignature,
   verifySignature,
+  parseKeysCli,
 }

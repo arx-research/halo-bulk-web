@@ -42,7 +42,7 @@
   transition: 0.2s transform;
 }
 
-.record.active .record-header-chevron {
+.record.record--active .record-header-chevron {
   transform: rotate(180deg);
 }
 
@@ -58,7 +58,7 @@
   display: none;
 }
 
-.record.active .record-body {
+.record.record--active .record-body {
   display: block;
 }
 
