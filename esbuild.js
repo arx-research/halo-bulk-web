@@ -3,7 +3,7 @@ import { sassPlugin } from 'esbuild-sass-plugin'
 
 esbuild
   .context({
-    entryPoints: ['src/scripts.js', 'src/style.scss'],
+    entryPoints: ['src/scripts.ts', 'src/style.scss'],
     bundle: true,
     sourcemap: true,
     external: ['*.woff'],

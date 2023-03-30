@@ -5,5 +5,9 @@
 }
 
 body .hide {
-  display: none;
+  display: none!important;
+}
+
+#console {
+  word-break: break-all;
 }

@@ -38,6 +38,8 @@
 
     "@arx-research/libhalo": "^1.1.13",
 
+    "ethers": "^6.2.3",
+
     "websocket-as-promised": "^2.0.1"
 
   }

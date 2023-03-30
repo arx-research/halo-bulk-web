@@ -107,7 +107,10 @@ svg {
   width: calc(100% - 40px);
 }
 body .hide {
-  display: none;
+  display: none !important;
+}
+#console {
+  word-break: break-all;
 }
 .blue-box {
   background: var(--primary);

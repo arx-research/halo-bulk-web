@@ -8,7 +8,7 @@
     <title>HaLo Verify</title>
   </head>
   <body>
-    <!-- <div id="console" style="background: white; color: black; font-family: monospace"></div> -->
+    <div id="console" style="background: white; color: black; font-family: monospace"></div>
 
     <div class="width">
       <div class="blue-box">
@@ -23,11 +23,24 @@
 
               <div class="settings-dropdown-dropdown">
                 <div class="settings-dropdown-dropdown-option">
-                  <input checked type="radio" name="scan-mode" id="standard" value="Standard" />
+                  <input
+                    class="settings-dropdown-dropdown-option-radio"
+                    checked
+                    type="radio"
+                    name="scan-mode"
+                    id="standard"
+                    value="Standard"
+                  />
                   <label for="standard">Standard</label>
                 </div>
                 <div class="settings-dropdown-dropdown-option">
-                  <input type="radio" name="scan-mode" id="legacy" value="Legacy" />
+                  <input
+                    class="settings-dropdown-dropdown-option-radio"
+                    type="radio"
+                    name="scan-mode"
+                    id="legacy"
+                    value="Legacy"
+                  />
                   <label for="legacy">Legacy</label>
                 </div>
               </div>
@@ -63,7 +76,7 @@
               <span>Scan</span>
               <img src="./assets/scan.svg" alt="Scan" />
             </button>
-            <button disabled id="sign" class="button full-width icon-right sign-button">
+            <button disabled id="sign" class="hide button full-width icon-right sign-button">
               <span>Sign</span>
               <img src="./assets/sign.svg" alt="Sign" />
             </button>
@@ -72,7 +85,6 @@
       </div>
     </div>
 
-    <script src="https://cdn.ethers.io/lib/ethers-5.1.umd.min.js"></script>
     <script src="./assets/scripts.js"></script>
   </body>
 </html>
