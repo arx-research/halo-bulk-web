@@ -1,0 +1,13 @@
+.width {
+  max-width: 500px;
+  margin: 0 auto;
+  width: calc(100% - 40px);
+}
+
+body .hide {
+  display: none!important;
+}
+
+#console {
+  word-break: break-all;
+}

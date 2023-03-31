@@ -1,0 +1,24 @@
+{
+  "type": "module",
+  "name": "halo-bulk-web",
+  "description": "This tool lets you quickly scan and save HaLo information across a large set of chips using an NFC enabled smartphone. The chip information can then be exported to a `.json` file.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node ./esbuild.js --watch",
+    "build": "node ./esbuild.js --minify",
+    "serve": "cd dist && http-server -p 3000 -c-1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.17.12",
+    "esbuild-sass-plugin": "^2.7.0"
+  },
+  "dependencies": {
+    "@arx-research/libhalo": "^1.1.15",
+    "ethers": "^6.2.3",
+    "websocket-as-promised": "^2.0.1"
+  }
+}

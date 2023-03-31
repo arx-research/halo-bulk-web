@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./assets/style.css?9" />
+    <title>HaLo Verify</title>
+  </head>
+  <body>
+    <div id="console" style="background: white; color: black; font-family: monospace"></div>
+
+    <div class="width">
+      <div class="blue-box">
+        <header class="header">
+          <img src="./assets/logo.svg" alt="Arx" />
+
+          <div class="header-buttons">
+            <div class="settings-dropdown">
+              <button class="icon-button" id="settings">
+                <img src="./assets/settings.svg" />
+              </button>
+
+              <div class="settings-dropdown-dropdown">
+                <div class="settings-dropdown-dropdown-option">
+                  <input
+                    class="settings-dropdown-dropdown-option-radio"
+                    checked
+                    type="radio"
+                    name="scan-mode"
+                    id="standard"
+                    value="Standard"
+                  />
+                  <label for="standard">Standard</label>
+                </div>
+                <div class="settings-dropdown-dropdown-option">
+                  <input
+                    class="settings-dropdown-dropdown-option-radio"
+                    type="radio"
+                    name="scan-mode"
+                    id="legacy"
+                    value="Legacy"
+                  />
+                  <label for="legacy">Legacy</label>
+                </div>
+              </div>
+            </div>
+
+            <span class="icon-button hide" id="count">0</span>
+
+            <button class="icon-button hide" id="export">
+              <img src="./assets/export.svg" alt="Export" />
+            </button>
+
+            <button class="icon-button hide" id="clear">
+              <img src="./assets/clear.svg" alt="Clear" />
+            </button>
+          </div>
+        </header>
+
+        <p class="empty-text">Tap Scan and hold HaLo to phone NFC antenna.</p>
+
+        <div class="records"></div>
+      </div>
+
+      <p id="pkey1raw" hidden>0x</p>
+    </div>
+
+    <div class="scan-form-wrap">
+      <div class="width">
+        <div class="scan-form">
+          <input type="text" id="metadata" class="metadata-input text-field" placeholder="Optional Metadata" />
+
+          <div class="scan-form-buttons">
+            <button id="scan" class="button full-width icon-right scan-button">
+              <span>Scan</span>
+              <img src="./assets/scan.svg" alt="Scan" />
+            </button>
+            <button disabled id="sign" class="hide button full-width icon-right sign-button">
+              <span>Sign</span>
+              <img src="./assets/sign.svg" alt="Sign" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./assets/scripts.js"></script>
+  </body>
+</html>
