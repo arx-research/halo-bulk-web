@@ -1,7 +1,7 @@
 import WebSocketAsPromised from 'websocket-as-promised'
-import { computeAddress, hashMessage } from 'ethers'
+import { computeAddress, hashMessage, sha256 } from 'ethers'
 import { splitHash, parseKeysCli, download } from './js/helpers'
-import { execHaloCmdWeb } from '@arx-research/libhalo'
+import { execHaloCmdWeb, haloRecoverPublicKey, haloConvertSignature } from '@arx-research/libhalo'
 
 type modes = 'Legacy' | 'Standard'
 
@@ -172,7 +172,7 @@ class BulkScanner {
       },
     })
 
-    keys.sig = res2.data.res
+    keys.sig = res2.data.res.signature
 
     /* 
       Update everything
@@ -205,13 +205,17 @@ class BulkScanner {
     this.Halos[keys['primaryPublicKeyHash']] = keys
     // document.querySelector('#console')!.innerHTML += JSON.stringify(this.Halos[keys['primaryPublicKeyHash']])
 
+    // Update storage
+    this.UpdateLocalStorage()
+
     // Rebuild page
     this.Render()
   }
 
   HandleLegacySign = async () => {
     // Create digest
-    const digest = this.GenerateDigest(this.Els.metadata.value)
+    const metadata = this.Els.metadata.value
+    const digest = this.GenerateDigest(metadata)
 
     // @ts-ignore Send it
     const res = await execHaloCmdWeb({
@@ -220,6 +224,33 @@ class BulkScanner {
       digest,
       legacySignCommand: true,
     })
+
+    // Find the record
+    const potentialKeys: string[] = haloRecoverPublicKey(res.input.digest, res.signature.der)
+    const potentialKey1 = sha256('0x' + potentialKeys[0].slice(2))
+    const potentialKey2 = sha256('0x' + potentialKeys[1].slice(2))
+
+    if (this.Halos[potentialKey1]) {
+      alert(1)
+      // @ts-ignore
+      const sig = haloConvertSignature(res.input.digest, res.signature.der, potentialKeys[0])
+      this.Halos[potentialKey1].sig = sig
+      this.Halos[potentialKey1].metadata = metadata
+    } else if (this.Halos[potentialKey2]) {
+      alert(2)
+      //@ts-ignore
+      const sig = haloConvertSignature(res.input.digest, res.signature.der, potentialKeys[1])
+      this.Halos[potentialKey2].sig = sig
+      this.Halos[potentialKey2].metadata = metadata
+    } else {
+      alert('Please scan chip before signing match')
+    }
+
+    // Update storage
+    this.UpdateLocalStorage()
+
+    // Rerender
+    this.Render()
   }
 
   HandleStandardScan = async () => {
@@ -229,7 +260,7 @@ class BulkScanner {
       // Create Digest
       const digest = this.GenerateDigest(metadata)
 
-      // Send it
+      // @ts-ignore Send it
       const res = await execHaloCmdWeb({
         name: 'sign',
         keyNo: 1,
@@ -242,7 +273,7 @@ class BulkScanner {
 
       if (metadata.length > 0) {
         keys['metadata'] = metadata
-        keys['sig'] = res.sig
+        keys['sig'] = res.signature
       }
 
       // Add if doesnt exist
@@ -294,6 +325,18 @@ class BulkScanner {
     el.setAttribute('data-primary', record.primaryPublicKeyHash)
 
     const pkSplit = splitHash(record.primaryPublicKeyHash)
+    let signatureStuff = ''
+
+    if (record.sig) {
+      signatureStuff = `
+      <div class="record-body-section">
+      <h2>Signature DER</h2>
+      <div class="record-body-section-box">
+        ${record.sig.der}
+      </div>
+    </div>
+      `
+    }
 
     el.innerHTML = `
       <div class="record-header">
@@ -331,6 +374,7 @@ class BulkScanner {
             ${record.address}
           </div>
         </div>
+        ${signatureStuff}
       </div>
       `
 

@@ -2758,7 +2758,7 @@
         16: ["ERROR_CODE_PWD_NOT_SET", "Password was not set."],
         17: ["ERROR_CODE_WRONG_PWD", "Wrong password provided."],
         18: ["ERROR_CODE_PWD_ALREADY_SET", "Password is already set."],
-        19: ["ERROR_CODE_MODE_NOT_SUPPORTED", "Internal error: invalid structure passed when calling the command."]
+        19: ["ERROR_CODE_NO_ADDON", "HaLo Addons are not installed on this tag."]
       };
       module2.exports = { ERROR_CODES };
     }
@@ -38079,7 +38079,7 @@
           s: sn.toString(16).padStart(64, "0")
         };
       }
-      function reformatSignature(digest, signature, publicKey) {
+      function convertSignature(digest, signature, publicKey) {
         signature = Buffer2.from(signature, "hex");
         let fixedSig = parseSig(signature);
         let recoveryParam = null;
@@ -38099,15 +38099,22 @@
           throw new HaloLogicError("Failed to correctly recover public key from the signature.");
         }
         return {
-          "signature": {
-            "raw": {
-              ...fixedSig,
-              v: recoveryParam + 27
-            },
-            "der": signature.toString("hex"),
-            "ether": finalSig.toString("hex")
-          }
+          "raw": {
+            ...fixedSig,
+            v: recoveryParam + 27
+          },
+          "der": signature.toString("hex"),
+          "ether": finalSig.toString("hex")
         };
+      }
+      function recoverPublicKey2(digest, signature) {
+        let out = [];
+        signature = Buffer2.from(signature, "hex");
+        let fixedSig = parseSig(signature);
+        for (let i = 0; i < 2; i++) {
+          out.push(ec.recoverPubKey(new BN(digest, 16), fixedSig, i).encode("hex"));
+        }
+        return out;
       }
       function mode(arr) {
         return arr.sort(
@@ -38118,8 +38125,9 @@
         hex2arr: hex2arr2,
         arr2hex,
         parseSig,
-        reformatSignature,
+        convertSignature,
         parsePublicKeys,
+        recoverPublicKey: recoverPublicKey2,
         mode
       };
     }
@@ -38867,12 +38875,15 @@
         "SHARED_CMD_GET_PKEYS": 2,
         "SHARED_CMD_GENERATE_3RD_KEY": 3,
         "SHARED_CMD_GENERATE_3RD_KEY_CONT": 9,
+        "SHARED_CMD_GENERATE_3RD_KEY_FINALIZE": 18,
         "SHARED_CMD_GET_ATTEST": 4,
         // reserved, do not use
         "SHARED_CMD_RESERVED_1": 5,
         "SHARED_CMD_FETCH_SIGN": 6,
         "SHARED_CMD_GET_FW_VERSION": 7,
         "SHARED_CMD_SIGN_RANDOM": 8,
+        "SHARED_CMD_GET_ADDON_FW_VERSION": 9,
+        "SHARED_CMD_SIGN_CHALLENGE": 17,
         "SHARED_CMD_SIGN_PWD": 161,
         "SHARED_CMD_FETCH_SIGN_PWD": 162,
         "SHARED_CMD_SET_PASSWORD": 163,
@@ -38897,7 +38908,7 @@
       var Buffer2 = require_buffer().Buffer;
       var ethers2 = require_lib32();
       var { HaloLogicError, HaloTagError } = require_exceptions();
-      var { reformatSignature, mode, parseSig, parsePublicKeys } = require_utils8();
+      var { convertSignature, mode, parseSig, parsePublicKeys } = require_utils8();
       var { FLAGS } = require_flags();
       var { sha256: sha2563 } = require_sha256();
       var EC = require_elliptic().ec;
@@ -39005,7 +39016,7 @@
         if (publicKey) {
           return {
             "input": inputObj,
-            ...reformatSignature(digestBuf.toString("hex"), sig.toString("hex"), publicKey.toString("hex")),
+            "signature": convertSignature(digestBuf.toString("hex"), sig.toString("hex"), publicKey.toString("hex")),
             publicKey: publicKey.toString("hex")
           };
         } else {
@@ -39029,12 +39040,26 @@
         let resp = await options.exec(Buffer2.from([CMD.SHARED_CMD_SIGN_RANDOM, args.keyNo]));
         let resBuf = Buffer2.from(resp.result, "hex");
         let digest = resBuf.slice(0, 32);
-        let signature = resBuf.slice(32);
+        let signature = resBuf.slice(32, 32 + resBuf[33] + 2);
+        let publicKey = resBuf.slice(32 + resBuf[33] + 2);
         let counter = digest.readUInt32BE(0);
         return {
           "counter": counter,
           "digest": digest.toString("hex"),
-          "signature": signature.toString("hex")
+          "signature": signature.toString("hex"),
+          "publicKey": publicKey.toString("hex")
+        };
+      }
+      async function cmdSignChallenge(options, args) {
+        let challengeBuf = Buffer2.from(args.challenge, "hex");
+        let resp = await options.exec(Buffer2.from([CMD.SHARED_CMD_SIGN_CHALLENGE, args.keyNo, ...challengeBuf]));
+        let resBuf = Buffer2.from(resp.result, "hex");
+        let sigLen = 2 + resBuf[1];
+        let signature = resBuf.slice(0, sigLen);
+        let publicKey = resBuf.slice(sigLen);
+        return {
+          "signature": signature.toString("hex"),
+          "publicKey": publicKey.toString("hex")
         };
       }
       async function cmdCfgNDEF(options, args) {
@@ -39107,7 +39132,24 @@
         await options.exec(payload);
         return { "status": "ok" };
       }
-      module2.exports = { cmdSign, cmdSignRandom, cmdWriteLatch, cmdCfgNDEF, cmdGenKey, cmdGenKeyConfirm, cmdGetPkeys };
+      async function cmdGenKeyFinalize(options, args) {
+        let payload = Buffer2.concat([
+          Buffer2.from([CMD.SHARED_CMD_GENERATE_3RD_KEY_FINALIZE])
+        ]);
+        await options.exec(payload);
+        return { "status": "ok" };
+      }
+      module2.exports = {
+        cmdSign,
+        cmdSignRandom,
+        cmdWriteLatch,
+        cmdCfgNDEF,
+        cmdGenKey,
+        cmdGenKeyConfirm,
+        cmdGetPkeys,
+        cmdGenKeyFinalize,
+        cmdSignChallenge
+      };
     }
   });
 
@@ -39122,7 +39164,17 @@
         HaloLogicError,
         HaloTagError
       } = require_exceptions();
-      var { cmdGetPkeys, cmdSign, cmdCfgNDEF, cmdWriteLatch, cmdSignRandom, cmdGenKey, cmdGenKeyConfirm } = require_commands();
+      var {
+        cmdGetPkeys,
+        cmdSign,
+        cmdCfgNDEF,
+        cmdWriteLatch,
+        cmdSignRandom,
+        cmdGenKey,
+        cmdGenKeyConfirm,
+        cmdGenKeyFinalize,
+        cmdSignChallenge
+      } = require_commands();
       var { ERROR_CODES } = require_errors();
       var isCallRunning = null;
       function detectMethod() {
@@ -39144,6 +39196,8 @@
             return await cmdSign(options, command);
           case "sign_random":
             return await cmdSignRandom(options, command);
+          case "sign_challenge":
+            return await cmdSignChallenge(options, command);
           case "write_latch":
             return await cmdWriteLatch(options, command);
           case "cfg_ndef":
@@ -39152,6 +39206,8 @@
             return await cmdGenKey(options, command);
           case "gen_key_confirm":
             return await cmdGenKeyConfirm(options, command);
+          case "gen_key_finalize":
+            return await cmdGenKeyFinalize(options, command);
           default:
             throw new HaloLogicError("Unsupported command.name parameter specified.");
         }
@@ -39812,7 +39868,13 @@
       }
       async function transceive(reader, command, options) {
         options = options || {};
+        let start = performance.now();
         let res = await reader.transmit(command, 255);
+        let end = performance.now();
+        if (process.env.DEBUG_PCSC === "1") {
+          console.log("=> " + command.toString("hex"));
+          console.log("<= [" + Math.round(end - start) + " ms] " + res.toString("hex"));
+        }
         let check1 = res.slice(-2).compare(Buffer.from([144, 0])) !== 0;
         let check2 = res.slice(-2).compare(Buffer.from([145, 0])) !== 0;
         if (!options.noCheck) {
@@ -39842,6 +39904,13 @@
           return versionRes.slice(0, -2).toString();
         }
       }
+      async function getAddonVersion(reader) {
+        let addonVersionRes = await transceive(reader, Buffer.from("00510000011000", "hex"), { noCheck: true });
+        if (addonVersionRes.slice(-2).compare(Buffer.from([144, 0])) !== 0) {
+          return null;
+        }
+        return addonVersionRes.slice(0, -2).toString();
+      }
       async function execCoreCommand(reader, command) {
         const cmdBuf = Buffer.concat([
           Buffer.from("B0510000", "hex"),
@@ -39865,7 +39934,6 @@
       async function execHaloCmdPCSC(command, reader) {
         let version2 = await getVersion(reader);
         let [verMajor, verMinor, verSeq, verShortId] = version2.split(".");
-        verMajor = parseInt(verMajor, 10);
         verSeq = parseInt(verSeq, 10);
         if (verMajor > 1) {
           throw new HaloLogicError("This version of CLI doesn't support major release version " + verMajor + ". Please update.");
@@ -39873,13 +39941,31 @@
         let options = makeOptions(reader);
         command = { ...command };
         if (command.name === "version") {
+          let addonVersion = await getAddonVersion(reader);
+          let addonParts = null;
+          if (addonVersion) {
+            let [verAMajor, verAMinor, verASeq, verAShortId] = addonVersion.split(".");
+            verASeq = parseInt(verASeq, 10);
+            addonParts = {
+              verAMajor,
+              verAMinor,
+              verASeq,
+              verAShortId
+            };
+          }
           return {
-            "version": version2,
-            "parts": {
-              verMajor,
-              verMinor,
-              verSeq,
-              verShortId
+            "core": {
+              "ver": version2,
+              "parts": {
+                verMajor,
+                verMinor,
+                verSeq,
+                verShortId
+              }
+            },
+            "addons": {
+              "ver": addonVersion,
+              "parts": addonParts
             }
           };
         } else if (command.name === "read_ndef") {
@@ -39910,7 +39996,7 @@
         NFCAbortedError,
         NFCOperationError
       } = require_exceptions();
-      var { parsePublicKeys } = require_utils8();
+      var { parsePublicKeys, convertSignature, recoverPublicKey: recoverPublicKey2 } = require_utils8();
       module2.exports = {
         // for desktop usage
         execHaloCmdPCSC,
@@ -39920,6 +40006,8 @@
         execHaloCmdRN,
         // exported utils
         haloParsePublicKeys: parsePublicKeys,
+        haloConvertSignature: convertSignature,
+        haloRecoverPublicKey: recoverPublicKey2,
         // exceptions
         HaloTagError,
         HaloLogicError,
@@ -43080,7 +43168,7 @@
             keyNo: 1
           }
         });
-        keys.sig = res2.data.res;
+        keys.sig = res2.data.res.signature;
         this.Halos[keys["primaryPublicKeyHash"]] = keys;
         this.UpdateLocalStorage();
         this.Render();
@@ -43094,16 +43182,36 @@
         if (this.Halos[keys["primaryPublicKeyHash"]] !== void 0)
           return;
         this.Halos[keys["primaryPublicKeyHash"]] = keys;
+        this.UpdateLocalStorage();
         this.Render();
       };
       this.HandleLegacySign = async () => {
-        const digest = this.GenerateDigest(this.Els.metadata.value);
+        const metadata = this.Els.metadata.value;
+        const digest = this.GenerateDigest(metadata);
         const res = await (0, import_libhalo.execHaloCmdWeb)({
           name: "sign",
           keyNo: 1,
           digest,
           legacySignCommand: true
         });
+        const potentialKeys = (0, import_libhalo.haloRecoverPublicKey)(res.input.digest, res.signature.der);
+        const potentialKey1 = sha2562("0x" + potentialKeys[0].slice(2));
+        const potentialKey2 = sha2562("0x" + potentialKeys[1].slice(2));
+        if (this.Halos[potentialKey1]) {
+          alert(1);
+          const sig = (0, import_libhalo.haloConvertSignature)(res.input.digest, res.signature.der, potentialKeys[0]);
+          this.Halos[potentialKey1].sig = sig;
+          this.Halos[potentialKey1].metadata = metadata;
+        } else if (this.Halos[potentialKey2]) {
+          alert(2);
+          const sig = (0, import_libhalo.haloConvertSignature)(res.input.digest, res.signature.der, potentialKeys[1]);
+          this.Halos[potentialKey2].sig = sig;
+          this.Halos[potentialKey2].metadata = metadata;
+        } else {
+          alert("Please scan chip before signing match");
+        }
+        this.UpdateLocalStorage();
+        this.Render();
       };
       this.HandleStandardScan = async () => {
         try {
@@ -43118,7 +43226,7 @@
           keys["address"] = computeAddress("0x" + keys["primaryPublicKeyRaw"]);
           if (metadata.length > 0) {
             keys["metadata"] = metadata;
-            keys["sig"] = res.sig;
+            keys["sig"] = res.signature;
           }
           if (this.Halos[keys["primaryPublicKeyHash"]] !== void 0)
             return;
@@ -43149,6 +43257,17 @@
         el.classList.add("record");
         el.setAttribute("data-primary", record.primaryPublicKeyHash);
         const pkSplit = splitHash(record.primaryPublicKeyHash);
+        let signatureStuff = "";
+        if (record.sig) {
+          signatureStuff = `
+      <div class="record-body-section">
+      <h2>Signature DER</h2>
+      <div class="record-body-section-box">
+        ${record.sig.der}
+      </div>
+    </div>
+      `;
+        }
         el.innerHTML = `
       <div class="record-header">
         <button class="record-header-delete">
@@ -43181,6 +43300,7 @@
             ${record.address}
           </div>
         </div>
+        ${signatureStuff}
       </div>
       `;
         return el;
