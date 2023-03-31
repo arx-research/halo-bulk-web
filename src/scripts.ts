@@ -156,23 +156,27 @@ class BulkScanner {
 
     // Add metadata
     const metadata = this.Els.metadata.value
-    if (metadata.length > 0) keys.metadata = metadata
+    if (metadata.length > 0) {
+      keys.metadata = metadata
 
-    /*
+      /*
       Get sign data
     */
 
-    const res2 = await this.wsp.sendRequest({
-      type: 'exec_halo',
-      handle: ev.data.handle,
-      command: {
-        name: 'sign',
-        message: this.Els.metadata.value,
-        keyNo: 1,
-      },
-    })
+      const res2 = await this.wsp.sendRequest({
+        type: 'exec_halo',
+        handle: ev.data.handle,
+        command: {
+          name: 'sign',
+          message: this.Els.metadata.value,
+          keyNo: 1,
+        },
+      })
 
-    keys.sig = res2.data.res.signature
+      if (res2?.data?.res?.signature) {
+        keys.sig = res2?.data?.res?.signature
+      }
+    }
 
     /* 
       Update everything
@@ -514,4 +518,8 @@ class BulkScanner {
   }
 }
 
-new BulkScanner()
+try {
+  new BulkScanner()
+} catch (err) {
+  console.log(err)
+}
