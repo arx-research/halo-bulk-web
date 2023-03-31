@@ -231,19 +231,17 @@ class BulkScanner {
     const potentialKey2 = sha256('0x' + potentialKeys[1].slice(2))
 
     if (this.Halos[potentialKey1]) {
-      alert(1)
       // @ts-ignore
       const sig = haloConvertSignature(res.input.digest, res.signature.der, potentialKeys[0])
       this.Halos[potentialKey1].sig = sig
       this.Halos[potentialKey1].metadata = metadata
     } else if (this.Halos[potentialKey2]) {
-      alert(2)
       //@ts-ignore
       const sig = haloConvertSignature(res.input.digest, res.signature.der, potentialKeys[1])
       this.Halos[potentialKey2].sig = sig
       this.Halos[potentialKey2].metadata = metadata
     } else {
-      alert('Please scan chip before signing match')
+      alert('Please scan chip before signing')
     }
 
     // Update storage
@@ -284,7 +282,7 @@ class BulkScanner {
       this.Render()
     } catch (err) {
       if (err.name == 'HaloLogicError') {
-        alert('Please switch to legacy mode.')
+        alert('Please switch to legacy mode')
       }
     }
   }
