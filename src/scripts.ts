@@ -446,7 +446,7 @@ class BulkScanner {
       this.Els.scanButton.disabled = true
     } else {
       this.Els.scanButton.classList.remove('no-click')
-      this.Els.scanButton.disabled = true
+      this.Els.scanButton.disabled = false
     }
 
     this.Els.signButton.disabled = this.Els.metadata.value.length === 0
