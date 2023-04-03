@@ -11,6 +11,11 @@
   text-transform: uppercase;
 }
 
+.button.no-click,
+.button.no-click:hover {
+  cursor: default;
+}
+
 .button.full-width {
   display: block;
   width: 100%;

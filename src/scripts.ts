@@ -7,7 +7,6 @@ type modes = 'Legacy' | 'Standard'
 
 class BulkScanner {
   // State
-  ScanListening = false
   Mode: modes = 'Standard'
   ReaderConnected = false
   Halos = {}
@@ -37,6 +36,7 @@ class BulkScanner {
 
     // Update page
     this.Render()
+    this.UpdateScanButton()
 
     // Add event listeners
     this.AddSettingsListeners()
@@ -83,7 +83,7 @@ class BulkScanner {
   // Websockets
   SetupWebsockets = () => {
     // Setup listener
-    this.wsp = new WebSocketAsPromised('ws://localhost:49437', {
+    this.wsp = new WebSocketAsPromised('ws://localhost:32868', {
       packMessage: (data: any) => JSON.stringify(data),
       unpackMessage: (data: any) => JSON.parse(data),
       attachRequestId: (data, requestId) => Object.assign({ uid: requestId }, data),
@@ -100,6 +100,11 @@ class BulkScanner {
       switch (ev.event) {
         case 'reader_added':
           this.ReaderConnected = true
+          this.UpdateScanButton()
+          break
+        case 'reader_removed':
+          this.ReaderConnected = false
+          this.UpdateScanButton()
           break
         case 'handle_added':
           this.HandleReaderScan(ev)
@@ -127,8 +132,6 @@ class BulkScanner {
 
   // Handle Scans
   HandleReaderScan = async (ev) => {
-    if (!this.ScanListening) return
-
     /*
       Get keys
     */
@@ -148,11 +151,10 @@ class BulkScanner {
     keys['address'] = computeAddress('0x' + keys['primaryPublicKeyRaw'])
 
     // Return early if it already exists
-    if (this.Halos[keys['primaryPublicKeyHash']] != undefined) {
-      this.ScanListening = false
-      this.UpdateScanButton()
-      return
-    }
+    // if (this.Halos[keys['primaryPublicKeyHash']] != undefined) {
+    //   this.UpdateScanButton()
+    //   return
+    // }
 
     // Add metadata
     const metadata = this.Els.metadata.value
@@ -192,7 +194,6 @@ class BulkScanner {
     this.Render()
 
     // Reset scan button
-    this.ScanListening = false
     this.UpdateScanButton()
   }
 
@@ -405,19 +406,26 @@ class BulkScanner {
 
   UpdateScanButton = () => {
     if (this.Mode === 'Standard') {
+      // Hide sign button
       this.Els.signButton.classList.add('hide')
 
-      let buttonText = 'Listening...'
+      let buttonText = 'Scan'
 
-      if (!this.ScanListening) {
-        buttonText = 'Scan'
-        if (this.Els.metadata.value.length > 0) buttonText += ' and sign'
+      if (this.ReaderConnected) {
+        buttonText = 'Hold chip to reader to scan'
+      } else if (this.Els.metadata.value.length > 0) {
+        buttonText += ' and sign'
       }
-
       this.Els.scanButton.querySelector('span')!.textContent = buttonText
     } else {
       this.Els.signButton.classList.remove('hide')
       this.Els.scanButton.querySelector('span')!.textContent = 'Scan'
+    }
+
+    if (this.ReaderConnected && this.Mode == 'Standard') {
+      this.Els.scanButton.classList.add('no-click')
+    } else {
+      this.Els.scanButton.classList.remove('no-click')
     }
 
     this.Els.signButton.disabled = this.Els.metadata.value.length === 0
@@ -431,7 +439,7 @@ class BulkScanner {
 
     this.Els.settingsDropdown.addEventListener('click', (e) => e.stopPropagation())
 
-    document.querySelector('html, body').addEventListener('click', () => {
+    document.querySelector('html, body')!.addEventListener('click', () => {
       this.Els.settingsDropdown.classList.remove('settings-dropdown-active')
     })
   }
@@ -501,7 +509,6 @@ class BulkScanner {
   AddScanClickListener = () => {
     this.Els.scanButton.addEventListener('click', async () => {
       if (this.ReaderConnected && this.Mode === 'Standard') {
-        this.ScanListening = !this.ScanListening
         this.UpdateScanButton()
       } else if (this.Mode === 'Legacy') {
         this.HandleLegacyScan()
