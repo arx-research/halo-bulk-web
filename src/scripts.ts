@@ -438,16 +438,16 @@ class BulkScanner {
       this.Els.scanButton.querySelector('span')!.textContent = 'Scan'
     }
 
-    // if (this.ReaderConnected && this.Mode == 'Standard') {
-    //   this.Els.scanButton.classList.add('no-click')
-    //   this.Els.scanButton.disabled = false
-    // } else if (!this.ReaderConnected && !this.CheckMobile()) {
-    //   this.Els.scanButton.classList.add('no-click')
-    //   this.Els.scanButton.disabled = true
-    // } else {
-    //   this.Els.scanButton.classList.remove('no-click')
-    //   this.Els.scanButton.disabled = false
-    // }
+    if (this.ReaderConnected && this.Mode == 'Standard') {
+      this.Els.scanButton.classList.add('no-click')
+      this.Els.scanButton.disabled = false
+    } else if (!this.ReaderConnected && this.Mode == 'Standard' && navigator.platform.indexOf('Win') < 0) {
+      this.Els.scanButton.classList.add('no-click')
+      this.Els.scanButton.disabled = true
+    } else {
+      this.Els.scanButton.classList.remove('no-click')
+      this.Els.scanButton.disabled = false
+    }
 
     this.Els.signButton.disabled = this.Els.metadata.value.length === 0
   }
