@@ -441,7 +441,10 @@ class BulkScanner {
     if (this.ReaderConnected && this.Mode == 'Standard') {
       this.Els.scanButton.classList.add('no-click')
       this.Els.scanButton.disabled = false
-    } else if (!this.ReaderConnected && this.Mode == 'Standard' && navigator.platform.indexOf('Win') < 0) {
+    } else if (
+      (!this.ReaderConnected && this.Mode == 'Standard' && navigator.platform.indexOf('Win') > 0) ||
+      !this.CheckMobile()
+    ) {
       this.Els.scanButton.classList.add('no-click')
       this.Els.scanButton.disabled = true
     } else {
