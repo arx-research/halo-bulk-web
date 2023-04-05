@@ -442,7 +442,9 @@ class BulkScanner {
       this.Els.scanButton.classList.add('no-click')
       this.Els.scanButton.disabled = false
     } else if (
-      (!this.ReaderConnected && this.Mode == 'Standard' && navigator.platform.indexOf('Win') === -1) ||
+      !this.ReaderConnected &&
+      this.Mode == 'Standard' &&
+      navigator.platform.indexOf('Win') === -1 &&
       !this.CheckMobile()
     ) {
       this.Els.scanButton.classList.add('no-click')
