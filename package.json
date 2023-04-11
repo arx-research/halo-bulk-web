@@ -17,8 +17,11 @@
     "esbuild-sass-plugin": "^2.7.0"
   },
   "dependencies": {
-    "@arx-research/libhalo": "^1.1.15",
+    "@arx-research/libhalo": "^1.1.22",
     "ethers": "^6.2.3",
     "websocket-as-promised": "^2.0.1"
+  },
+  "browser": {
+    "crypto": false
   }
 }

@@ -1,7 +1,7 @@
 import WebSocketAsPromised from 'websocket-as-promised'
 import { computeAddress, hashMessage, sha256 } from 'ethers'
 import { splitHash, parseKeysCli, download } from './js/helpers'
-import { execHaloCmdWeb, haloRecoverPublicKey, haloConvertSignature } from '@arx-research/libhalo'
+import { execHaloCmdWeb, haloRecoverPublicKey, haloConvertSignature, haloFindBridge } from '@arx-research/libhalo'
 
 type modes = 'Legacy' | 'Standard'
 
@@ -97,41 +97,47 @@ class BulkScanner {
   }
 
   // Websockets
-  SetupWebsockets = () => {
-    // Setup listener
-    this.wsp = new WebSocketAsPromised('ws://localhost:32868', {
-      packMessage: (data: any) => JSON.stringify(data),
-      unpackMessage: (data: any) => JSON.parse(data),
-      attachRequestId: (data, requestId) => Object.assign({ uid: requestId }, data),
-      extractRequestId: (data) => data && data.uid,
-    })
+  SetupWebsockets = async () => {
+    try {
+      const bridgeUrl = await haloFindBridge()
 
-    this.wsp.open()
+      // Setup listener
+      this.wsp = new WebSocketAsPromised(bridgeUrl, {
+        packMessage: (data: any) => JSON.stringify(data),
+        unpackMessage: (data: any) => JSON.parse(data),
+        attachRequestId: (data, requestId) => Object.assign({ uid: requestId }, data),
+        extractRequestId: (data) => data && data.uid,
+      })
 
-    // Handle close
-    this.wsp.onClose.addListener((event) => this.HandleWebSocketsClose(event))
+      this.wsp.open()
 
-    // Handle events
-    this.wsp.onUnpackedMessage.addListener(async (ev) => {
-      switch (ev.event) {
-        case 'reader_added':
-          this.ReaderConnected = true
-          this.UpdateScanButton()
-          break
-        case 'reader_removed':
-          this.ReaderConnected = false
-          this.UpdateScanButton()
-          break
-        case 'handle_added':
-          this.HandleReaderScan(ev)
-          break
-        case 'exec_exception':
-          this.HandleScanFailure(ev)
-          break
-        default:
-          console.log('default', ev)
-      }
-    })
+      // Handle close
+      this.wsp.onClose.addListener((event) => this.HandleWebSocketsClose(event))
+
+      // Handle events
+      this.wsp.onUnpackedMessage.addListener(async (ev) => {
+        switch (ev.event) {
+          case 'reader_added':
+            this.ReaderConnected = true
+            this.UpdateScanButton()
+            break
+          case 'reader_removed':
+            this.ReaderConnected = false
+            this.UpdateScanButton()
+            break
+          case 'handle_added':
+            this.HandleReaderScan(ev)
+            break
+          case 'exec_exception':
+            this.HandleScanFailure(ev)
+            break
+          default:
+            console.log('default', ev)
+        }
+      })
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   HandleWebSocketsClose = (event) => {
