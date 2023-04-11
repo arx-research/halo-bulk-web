@@ -140,11 +140,15 @@ class BulkScanner {
     }
   }
 
-  HandleWebSocketsClose = (event) => {
+  HandleWebSocketsClose = async (event) => {
     if (event.code === 4001) {
       console.log('Connection closed, new client has connected.')
     } else {
       console.log('Connection closed: ' + event.code)
+
+      if (event.code === 4002) {
+        window.location.href = 'http://127.0.0.1:32868/consent?website=https://bulk.vrfy.ch/'
+      }
     }
   }
 
