@@ -117,6 +117,8 @@ class BulkScanner {
 
       // Handle events
       this.wsp.onUnpackedMessage.addListener(async (ev) => {
+        alert(ev)
+
         switch (ev.event) {
           case 'reader_added':
             this.ReaderConnected = true

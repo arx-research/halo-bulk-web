@@ -49558,6 +49558,7 @@ ${newlined}
           this.wsp.open();
           this.wsp.onClose.addListener((event) => this.HandleWebSocketsClose(event));
           this.wsp.onUnpackedMessage.addListener(async (ev) => {
+            alert(ev);
             switch (ev.event) {
               case "reader_added":
                 this.ReaderConnected = true;
