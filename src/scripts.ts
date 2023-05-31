@@ -64,7 +64,6 @@ class BulkScanner {
   }
 
   CheckMobile = () => {
-    // @ts-ignore
     let check = false
     ;(function (a) {
       if (
@@ -76,6 +75,7 @@ class BulkScanner {
         )
       )
         check = true
+      // @ts-ignore
     })(navigator.userAgent || navigator.vendor || window.opera)
     return check
   }
@@ -285,8 +285,6 @@ class BulkScanner {
 
   HandleStandardScan = async () => {
     try {
-      alert('running handle standard scan')
-
       const metadata = this.Els.metadata.value
 
       // Create Digest
@@ -315,6 +313,8 @@ class BulkScanner {
       // Rebuild page
       this.Render()
     } catch (err) {
+      alert(err)
+
       if (err.name == 'HaloLogicError') {
         alert('Please switch to legacy mode')
       }
