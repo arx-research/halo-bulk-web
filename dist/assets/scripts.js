@@ -49666,7 +49666,6 @@ ${newlined}
       };
       this.HandleStandardScan = async () => {
         try {
-          alert("running handle standard scan");
           const metadata = this.Els.metadata.value;
           const digest2 = this.GenerateDigest(metadata);
           const res = await (0, import_libhalo.execHaloCmdWeb)({
@@ -49685,6 +49684,7 @@ ${newlined}
           this.Halos[keys["primaryPublicKeyHash"]] = keys;
           this.Render();
         } catch (err) {
+          alert(err);
           if (err.name == "HaloLogicError") {
             alert("Please switch to legacy mode");
           }
