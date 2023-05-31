@@ -49579,6 +49579,7 @@ ${newlined}
             }
           });
         } catch (err) {
+          alert(err);
           console.log(err);
         }
       };
@@ -49669,6 +49670,17 @@ ${newlined}
         try {
           const metadata = this.Els.metadata.value;
           const digest2 = this.GenerateDigest(metadata);
+          let options = {
+            statusCallback: (cause) => {
+              if (cause === "init") {
+                alert("init status");
+              } else if (cause === "retry") {
+                alert("retry status");
+              } else if (cause === "scanned") {
+                alert("retry scanned");
+              }
+            }
+          };
           const res = await (0, import_libhalo.execHaloCmdWeb)({
             name: "sign",
             keyNo: 1,

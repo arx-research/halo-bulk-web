@@ -139,6 +139,7 @@ class BulkScanner {
         }
       })
     } catch (err) {
+      alert(err)
       console.log(err)
     }
   }
@@ -291,6 +292,18 @@ class BulkScanner {
 
       // Create Digest
       const digest = this.GenerateDigest(metadata)
+
+      let options = {
+        statusCallback: (cause) => {
+          if (cause === 'init') {
+            alert('init status')
+          } else if (cause === 'retry') {
+            alert('retry status')
+          } else if (cause === 'scanned') {
+            alert('retry scanned')
+          }
+        },
+      }
 
       // @ts-ignore Send it
       const res = await execHaloCmdWeb({
