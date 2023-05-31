@@ -306,11 +306,14 @@ class BulkScanner {
       }
 
       // @ts-ignore Send it
-      const res = await execHaloCmdWeb({
-        name: 'sign',
-        keyNo: 1,
-        digest,
-      })
+      const res = await execHaloCmdWeb(
+        {
+          name: 'sign',
+          keyNo: 1,
+          digest,
+        },
+        options
+      )
 
       // Create keys
       const keys = parseKeysCli({ 1: res.publicKey })

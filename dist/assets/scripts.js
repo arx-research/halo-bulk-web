@@ -49681,11 +49681,14 @@ ${newlined}
               }
             }
           };
-          const res = await (0, import_libhalo.execHaloCmdWeb)({
-            name: "sign",
-            keyNo: 1,
-            digest: digest2
-          });
+          const res = await (0, import_libhalo.execHaloCmdWeb)(
+            {
+              name: "sign",
+              keyNo: 1,
+              digest: digest2
+            },
+            options
+          );
           const keys = parseKeysCli({ 1: res.publicKey });
           keys["address"] = computeAddress("0x" + keys["primaryPublicKeyRaw"]);
           if (metadata.length > 0) {
