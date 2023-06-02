@@ -323,6 +323,8 @@ class BulkScanner {
         this.HandleStandardScan()
       }
     } catch (err) {
+      alert(err)
+
       if (err.name == 'HaloLogicError') {
         alert('Please switch to legacy mode')
       } else if (this.Method === 'webnfc' && err.name == 'NFCPermissionRequestDenied') {
