@@ -1,7 +1,13 @@
 import WebSocketAsPromised from 'websocket-as-promised'
 import { computeAddress, hashMessage, sha256 } from 'ethers'
 import { splitHash, parseKeysCli, download } from './js/helpers'
-import { execHaloCmdWeb, haloRecoverPublicKey, haloConvertSignature, haloFindBridge } from '@arx-research/libhalo'
+import {
+  haloGetDefaultMethod,
+  execHaloCmdWeb,
+  haloRecoverPublicKey,
+  haloConvertSignature,
+  haloFindBridge,
+} from '@arx-research/libhalo/api/web.js'
 
 type modes = 'Legacy' | 'Standard'
 
@@ -10,6 +16,7 @@ class BulkScanner {
   Mode: modes = 'Standard'
   ReaderConnected = false
   Halos = {}
+  method = haloGetDefaultMethod()
 
   // Web sockets
   wsp: WebSocketAsPromised
@@ -24,6 +31,7 @@ class BulkScanner {
     empty: document.querySelector('.empty-text')!,
     records: document.querySelector('.records')!,
     settingsDropdown: document.querySelector('.settings-dropdown')!,
+    buttons: <HTMLButtonElement>document.querySelector('#buttons')!,
     scanButton: <HTMLButtonElement>document.querySelector('#scan')!,
     signButton: <HTMLButtonElement>document.querySelector('#sign')!,
     modeRadios: <NodeListOf<HTMLInputElement>>document.querySelectorAll('.settings-dropdown-dropdown-option-radio')!,
@@ -31,24 +39,26 @@ class BulkScanner {
 
   // Setup
   constructor() {
-    // Retrieve
-    this.LoadHalosFromStorage()
+    try {
+      // Retrieve
+      this.LoadHalosFromStorage()
 
-    // Update page
-    this.Render()
-    this.UpdateScanButton()
+      // Update page
+      this.Render()
+      this.UpdateScanButton()
 
-    // Add event listeners
-    this.AddSettingsListeners()
-    this.AddClearListeners()
-    this.AddModeSelectListener()
-    this.AddMetadataListener()
-    this.AddScanClickListener()
-    this.AddExportListener()
-    this.AddSignListener()
+      // Add event listeners
+      this.AddSettingsListeners()
+      this.AddClearListeners()
+      this.AddModeSelectListener()
+      this.AddMetadataListener()
+      this.AddScanClickListener()
+      this.AddExportListener()
+      this.AddSignListener()
 
-    // Setup websockets
-    this.SetupWebsockets()
+      // Setup websockets
+      this.SetupWebsockets()
+    } catch (err) {}
   }
 
   // Helpers
@@ -56,8 +66,6 @@ class BulkScanner {
     let messageBytes = hashMessage(message)
     return messageBytes.slice(2)
   }
-
-  GenerateKeys = (keys) => {}
 
   DevLog = (data) => {
     document.querySelector('#console')!.innerHTML += JSON.stringify(data)
@@ -87,9 +95,7 @@ class BulkScanner {
 
       // Set on state
       if (halos) this.Halos = JSON.parse(halos)
-    } catch (err) {
-      console.log(err)
-    }
+    } catch (err) {}
   }
 
   UpdateLocalStorage = () => {
@@ -135,9 +141,7 @@ class BulkScanner {
             console.log('default', ev)
         }
       })
-    } catch (err) {
-      console.log(err)
-    }
+    } catch (err) {}
   }
 
   HandleWebSocketsClose = async (event) => {
@@ -152,9 +156,7 @@ class BulkScanner {
     }
   }
 
-  HandleScanFailure = (ev) => {
-    console.log('This scan failed', ev)
-  }
+  HandleScanFailure = (ev) => {}
 
   // Handle Scans
   HandleReaderScan = async (ev) => {
@@ -431,9 +433,19 @@ class BulkScanner {
   }
 
   UpdateScanButton = () => {
+    alert('hey ' + this.method + this.Mode)
+
     if (this.Mode === 'Standard') {
       // Hide sign button
       this.Els.signButton.classList.add('hide')
+
+      // Hide the scan button if webnfc
+      alert('were in standard' + this.method)
+      if (this.method === 'webnfc') {
+        this.Els.scanButton.classList.add('hide')
+      } else {
+        this.Els.scanButton.classList.add('hide')
+      }
 
       let buttonText = 'Scan'
 

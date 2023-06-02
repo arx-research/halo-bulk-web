@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "node ./esbuild.js --watch",
+    "dev": "node ./esbuild.js --watch --minify",
     "build": "node ./esbuild.js --minify",
     "serve": "cd dist && http-server -p 3000 -c-1",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,7 +17,7 @@
     "esbuild-sass-plugin": "^2.7.0"
   },
   "dependencies": {
-    "@arx-research/libhalo": "^1.1.22",
+    "@arx-research/libhalo": "^1.2.1",
     "ethers": "^6.2.3",
     "websocket-as-promised": "^2.0.1"
   },
