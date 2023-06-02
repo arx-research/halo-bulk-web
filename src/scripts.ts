@@ -1,22 +1,28 @@
-import WebSocketAsPromised from 'websocket-as-promised'
-import { computeAddress, hashMessage, sha256 } from 'ethers'
-import { splitHash, parseKeysCli, download } from './js/helpers'
-import {
-  haloGetDefaultMethod,
-  execHaloCmdWeb,
-  haloRecoverPublicKey,
-  haloConvertSignature,
-  haloFindBridge,
-} from '@arx-research/libhalo/api/web.js'
+/*
+  Dependencies
+*/
 
-type modes = 'Legacy' | 'Standard'
+// External
+import WebSocketAsPromised from 'websocket-as-promised'
+import { computeAddress, sha256 } from 'ethers'
+import { haloGetDefaultMethod, execHaloCmdWeb, haloFindBridge } from '@arx-research/libhalo/api/web.js'
+import { haloRecoverPublicKey, haloConvertSignature } from '@arx-research/libhalo/api/common.js'
+
+// Local
+import { splitHash, parseKeysCli, download, GenerateDigest, checkMobile } from './js/helpers'
+import { TScanMethods, TScanModes } from './js/types'
+
+/*
+  Bulk Scanner
+*/
 
 class BulkScanner {
   // State
-  Mode: modes = 'Standard'
+  Mode: TScanModes = 'Standard'
+  Method = haloGetDefaultMethod() as TScanMethods
   ReaderConnected = false
   Halos = {}
-  method = haloGetDefaultMethod()
+  WebNFCActivelyScanning = true
 
   // Web sockets
   wsp: WebSocketAsPromised
@@ -37,15 +43,19 @@ class BulkScanner {
     modeRadios: <NodeListOf<HTMLInputElement>>document.querySelectorAll('.settings-dropdown-dropdown-option-radio')!,
   }
 
-  // Setup
+  /*
+    Init
+  */
+
   constructor() {
     try {
-      // Retrieve
+      // Load stored halos
       this.LoadHalosFromStorage()
 
       // Update page
       this.Render()
       this.UpdateScanButton()
+      this.UpdateSignButton()
 
       // Add event listeners
       this.AddSettingsListeners()
@@ -58,41 +68,22 @@ class BulkScanner {
 
       // Setup websockets
       this.SetupWebsockets()
+
+      // Open scans if webnfc
+      if (this.Method === 'webnfc') {
+        this.HandleStandardScan()
+      }
     } catch (err) {}
   }
 
-  // Helpers
-  GenerateDigest = (message) => {
-    let messageBytes = hashMessage(message)
-    return messageBytes.slice(2)
-  }
+  /*
+    Import / export
+  */
 
-  DevLog = (data) => {
-    document.querySelector('#console')!.innerHTML += JSON.stringify(data)
-  }
-
-  CheckMobile = () => {
-    let check = false
-    ;(function (a) {
-      if (
-        /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
-          a
-        ) ||
-        /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(
-          a.substr(0, 4)
-        )
-      )
-        check = true
-    })(navigator.userAgent || navigator.vendor || window.opera)
-    return check
-  }
-
-  // Storage
   LoadHalosFromStorage = () => {
     try {
       // Get off local storage
       const halos = localStorage.getItem('halos')
-
       // Set on state
       if (halos) this.Halos = JSON.parse(halos)
     } catch (err) {}
@@ -102,7 +93,10 @@ class BulkScanner {
     localStorage.setItem('halos', JSON.stringify(this.Halos))
   }
 
-  // Websockets
+  /*
+    Web sockets
+  */
+
   SetupWebsockets = async () => {
     try {
       const bridgeUrl = await haloFindBridge()
@@ -126,10 +120,12 @@ class BulkScanner {
           case 'reader_added':
             this.ReaderConnected = true
             this.UpdateScanButton()
+            this.UpdateSignButton()
             break
           case 'reader_removed':
             this.ReaderConnected = false
             this.UpdateScanButton()
+            this.UpdateSignButton()
             break
           case 'handle_added':
             this.HandleReaderScan(ev)
@@ -158,7 +154,10 @@ class BulkScanner {
 
   HandleScanFailure = (ev) => {}
 
-  // Handle Scans
+  /*
+    Handle scans
+  */
+
   HandleReaderScan = async (ev) => {
     /*
       Get keys
@@ -180,7 +179,8 @@ class BulkScanner {
 
     // Return early if it already exists
     // if (this.Halos[keys['primaryPublicKeyHash']] != undefined) {
-    //   this.UpdateScanButton()
+    // this.UpdateScanButton()
+    // this.UpdateSignButton()
     //   return
     // }
 
@@ -223,6 +223,7 @@ class BulkScanner {
 
     // Reset scan button
     this.UpdateScanButton()
+    this.UpdateSignButton()
   }
 
   HandleLegacyScan = async () => {
@@ -248,7 +249,7 @@ class BulkScanner {
   HandleLegacySign = async () => {
     // Create digest
     const metadata = this.Els.metadata.value
-    const digest = this.GenerateDigest(metadata)
+    const digest = GenerateDigest(metadata)
 
     // @ts-ignore Send it
     const res = await execHaloCmdWeb({
@@ -289,7 +290,7 @@ class BulkScanner {
       const metadata = this.Els.metadata.value
 
       // Create Digest
-      const digest = this.GenerateDigest(metadata)
+      const digest = GenerateDigest(metadata)
 
       // @ts-ignore Send it
       const res = await execHaloCmdWeb({
@@ -313,14 +314,29 @@ class BulkScanner {
 
       // Rebuild page
       this.Render()
+
+      // If webnfc open up next scan automatically
+      if (this.Method === 'webnfc') {
+        this.WebNFCActivelyScanning = true
+        this.UpdateScanButton()
+        this.UpdateSignButton()
+        this.HandleStandardScan()
+      }
     } catch (err) {
       if (err.name == 'HaloLogicError') {
         alert('Please switch to legacy mode')
+      } else if (this.Method === 'webnfc' && err.name == 'NFCPermissionRequestDenied') {
+        this.WebNFCActivelyScanning = false
+        this.UpdateScanButton()
+        this.UpdateSignButton()
       }
     }
   }
 
-  // Render page
+  /*
+    Page updates
+  */
+
   Render = () => {
     // Clear old stuff
     this.Els.records.innerHTML = ''
@@ -432,54 +448,38 @@ class BulkScanner {
     this.Els.count.textContent = haloCount.toString()
   }
 
+  UpdateScanButtonText = (text) => {
+    this.Els.scanButton.querySelector('span')!.textContent = text
+  }
+
   UpdateScanButton = () => {
-    alert('hey ' + this.method + this.Mode)
-
-    if (this.Mode === 'Standard') {
-      // Hide sign button
-      this.Els.signButton.classList.add('hide')
-
-      // Hide the scan button if webnfc
-      alert('were in standard' + this.method)
-      if (this.method === 'webnfc') {
-        this.Els.scanButton.classList.add('hide')
-      } else {
-        this.Els.scanButton.classList.add('hide')
-      }
-
-      let buttonText = 'Scan'
-
-      if (this.ReaderConnected) {
-        buttonText = 'Hold chip to reader to scan'
-      } else if (this.Els.metadata.value.length > 0) {
-        buttonText += ' and sign'
-      }
-      this.Els.scanButton.querySelector('span')!.textContent = buttonText
-    } else {
-      this.Els.signButton.classList.remove('hide')
-      this.Els.scanButton.querySelector('span')!.textContent = 'Scan'
-    }
-
-    if (this.ReaderConnected && this.Mode == 'Standard') {
-      this.Els.scanButton.classList.add('no-click')
-      this.Els.scanButton.disabled = false
-    } else if (
-      !this.ReaderConnected &&
-      this.Mode == 'Standard' &&
-      navigator.platform.indexOf('Win') === -1 &&
-      !this.CheckMobile()
+    // Reader mode
+    if (
+      (this.ReaderConnected && this.Mode === 'Standard') ||
+      (!this.ReaderConnected && this.Mode === 'Standard' && this.Method === 'webnfc' && this.WebNFCActivelyScanning)
     ) {
-      this.Els.scanButton.classList.add('no-click')
+      this.UpdateScanButtonText('Scanning')
       this.Els.scanButton.disabled = true
     } else {
-      this.Els.scanButton.classList.remove('no-click')
+      this.UpdateScanButtonText('Scan')
       this.Els.scanButton.disabled = false
+    }
+  }
+
+  UpdateSignButton = () => {
+    if (this.Mode === 'Legacy') {
+      this.Els.signButton.classList.remove('hide')
+    } else {
+      this.Els.signButton.classList.add('hide')
     }
 
     this.Els.signButton.disabled = this.Els.metadata.value.length === 0
   }
 
-  // Event Listeners
+  /*
+    Event listeners
+  */
+
   AddSettingsListeners = () => {
     this.Els.settings.addEventListener('click', () => {
       this.Els.settingsDropdown.classList.toggle('settings-dropdown-active')
@@ -535,9 +535,10 @@ class BulkScanner {
   AddModeSelectListener = () => {
     this.Els.modeRadios.forEach((radio) => {
       radio.addEventListener('change', (e: any) => {
-        const mode: modes = e.target.value
+        const mode: TScanModes = e.target.value
         this.Mode = mode
         this.UpdateScanButton()
+        this.UpdateSignButton()
       })
     })
   }
@@ -551,6 +552,12 @@ class BulkScanner {
   AddMetadataListener = () => {
     this.Els.metadata.addEventListener('keyup', () => {
       this.UpdateScanButton()
+      this.UpdateSignButton()
+
+      // If this is the case we need to recreate awaited promise
+      if (this.WebNFCActivelyScanning && this.Mode === 'Standard' && this.Method === 'webnfc') {
+        this.HandleStandardScan()
+      }
     })
   }
 
@@ -558,6 +565,7 @@ class BulkScanner {
     this.Els.scanButton.addEventListener('click', async () => {
       if (this.ReaderConnected && this.Mode === 'Standard') {
         this.UpdateScanButton()
+        this.UpdateSignButton()
       } else if (this.Mode === 'Legacy') {
         this.HandleLegacyScan()
       } else {
@@ -573,8 +581,4 @@ class BulkScanner {
   }
 }
 
-try {
-  new BulkScanner()
-} catch (err) {
-  console.log(err)
-}
+new BulkScanner()
