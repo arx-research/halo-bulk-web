@@ -147,7 +147,7 @@ class BulkScanner {
       console.log('Connection closed: ' + event.code)
 
       if (event.code === 4002) {
-        window.location.href = 'http://127.0.0.1:32868/consent?website=https://bulk.vrfy.ch/'
+        window.location.href = `http://127.0.0.1:32868/consent?website=${window.location.href}`
       }
     }
   }
