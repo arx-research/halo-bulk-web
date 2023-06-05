@@ -11,3 +11,4 @@ The webpage must be loaded via an SSL encrypted domain for scanning to function;
 - [ ] Store chip signature of recent blockhash, address or content hash.
 - [ ] Add fields to allow naming of `.json` file and associate content.
 - [ ] Use WebNFC APIs on Android Chrome.
+      1
