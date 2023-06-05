@@ -5,7 +5,12 @@
 // External
 import WebSocketAsPromised from 'websocket-as-promised'
 import { computeAddress, sha256 } from 'ethers'
-import { haloGetDefaultMethod, execHaloCmdWeb, haloFindBridge } from '@arx-research/libhalo/api/web.js'
+import {
+  haloGetDefaultMethod,
+  execHaloCmdWeb,
+  haloFindBridge,
+  haloCheckWebNFCPermission,
+} from '@arx-research/libhalo/api/web.js'
 import { haloRecoverPublicKey, haloConvertSignature } from '@arx-research/libhalo/api/common.js'
 
 // Local
@@ -72,6 +77,7 @@ class BulkScanner {
       // Open scans if webnfc
       if (this.Method === 'webnfc') {
         this.HandleStandardScan()
+        this.AddWebNFCVisibilityListener()
       }
     } catch (err) {}
   }
@@ -323,8 +329,6 @@ class BulkScanner {
         this.HandleStandardScan()
       }
     } catch (err) {
-      alert(err)
-
       if (err.name == 'HaloLogicError') {
         alert('Please switch to legacy mode')
       } else if (this.Method === 'webnfc' && err.name == 'NFCPermissionRequestDenied') {
@@ -579,6 +583,14 @@ class BulkScanner {
   AddSignListener = () => {
     this.Els.signButton.addEventListener('click', () => {
       this.HandleLegacySign()
+    })
+  }
+
+  AddWebNFCVisibilityListener = () => {
+    document.addEventListener('visibilitychange', (e) => {
+      if (!document.hidden) {
+        this.HandleStandardScan()
+      }
     })
   }
 }
