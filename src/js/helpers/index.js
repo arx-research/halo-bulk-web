@@ -8,6 +8,8 @@ import splitHash from './splitHash'
 import unpackDERSignature from './unpackDERSignature'
 import verifySignature from './verifySignature'
 import parseKeysCli from './parseKeysCli'
+import GenerateDigest from './generateDigest'
+import checkMobile from './checkMobile'
 
 export {
   authU2F,
@@ -20,4 +22,6 @@ export {
   unpackDERSignature,
   verifySignature,
   parseKeysCli,
+  GenerateDigest,
+  checkMobile,
 }
