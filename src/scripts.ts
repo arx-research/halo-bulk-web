@@ -541,6 +541,7 @@ class BulkScanner {
   AddModeSelectListener = () => {
     this.Els.modeRadios.forEach((radio) => {
       radio.addEventListener('change', (e: any) => {
+        execHaloCmdWeb()
         const mode: TScanModes = e.target.value
         this.Mode = mode
         this.UpdateScanButton()
