@@ -193,6 +193,14 @@ class BulkScanner {
     //   return
     // }
 
+    // Increment count
+    if (this.Halos[keys['primaryPublicKeyHash']] === undefined) {
+      this.currentCount = this.currentCount + 1
+      this.Els.count.textContent = this.currentCount.toString()
+      this.Els.startingCount.value = this.currentCount.toString()
+      this.UpdateScanButton()
+    }
+
     // Add metadata
     const metadata = this.Els.metadata.value
     if (metadata.length > 0) {
@@ -229,14 +237,6 @@ class BulkScanner {
 
     // Update local storage
     this.UpdateLocalStorage()
-
-    // Increment count
-    if (this.Halos[keys['primaryPublicKeyHash']] != undefined) {
-      this.currentCount = this.currentCount + 1
-      this.Els.count.textContent = this.currentCount.toString()
-      this.Els.startingCount.value = this.currentCount.toString()
-      this.UpdateScanButton()
-    }
 
     // Update page
     this.Render()
