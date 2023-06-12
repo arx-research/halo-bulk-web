@@ -502,7 +502,7 @@ class BulkScanner {
       this.UpdateScanButtonText('Scanning #' + this.currentCount)
       this.Els.scanButton.disabled = true
     } else {
-      this.UpdateScanButtonText('Scan')
+      this.UpdateScanButtonText('Scan #' + this.currentCount)
       this.Els.scanButton.disabled = false
     }
   }
