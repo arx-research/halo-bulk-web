@@ -231,10 +231,12 @@ class BulkScanner {
     this.UpdateLocalStorage()
 
     // Increment count
-    this.currentCount = this.currentCount + 1
-    this.Els.count.textContent = this.currentCount.toString()
-    this.Els.startingCount.value = this.currentCount.toString()
-    this.UpdateScanButton()
+    if (this.Halos[keys['primaryPublicKeyHash']] != undefined) {
+      this.currentCount = this.currentCount + 1
+      this.Els.count.textContent = this.currentCount.toString()
+      this.Els.startingCount.value = this.currentCount.toString()
+      this.UpdateScanButton()
+    }
 
     // Update page
     this.Render()
@@ -310,12 +312,6 @@ class BulkScanner {
     // Update storage
     this.UpdateLocalStorage()
 
-    // Increment count
-    this.currentCount += 1
-    this.Els.count.textContent = this.currentCount.toString()
-    this.Els.startingCount.value = this.currentCount.toString()
-    this.UpdateScanButton()
-
     // Rerender
     this.Render()
   }
@@ -345,6 +341,7 @@ class BulkScanner {
 
       // Add if doesnt exist
       if (this.Halos[keys['primaryPublicKeyHash']] !== undefined) return
+
       this.Halos[keys['primaryPublicKeyHash']] = {
         ...keys,
         edition_number: this.currentCount,
