@@ -2,6 +2,11 @@
   position: relative;
 }
 
+.settings-dropdown-trigger {
+  cursor: pointer;
+  user-select: none;
+}
+
 .settings-dropdown-dropdown {
   position: absolute;
   top: 100%;
@@ -30,7 +35,6 @@
     right: 16px;
     background: var(--cardsBox);
     transform: rotate(45deg) translate(-50%, -50%);
-
   }
 }
 
@@ -39,7 +43,6 @@
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
-
 
   & + & {
     border-top: 1px solid var(--cardsBorder);
@@ -50,7 +53,7 @@
   }
 
   label {
-    color: var(--cardsMediumText);  
+    color: var(--cardsMediumText);
     display: block;
     width: 100%;
   }
@@ -58,5 +61,21 @@
   input:checked + label,
   label:hover {
     color: var(--cardsText);
+  }
+}
+
+.settings-dropdown-count {
+  padding: 16px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  input {
+    border: 1px solid var(--cardsBorder);
+    padding: 12px;
+    border-radius: 8px;
   }
 }

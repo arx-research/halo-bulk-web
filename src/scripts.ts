@@ -28,20 +28,23 @@ class BulkScanner {
   ReaderConnected = false
   Halos = {}
   WebNFCActivelyScanning = true
+  currentCount = 1
 
   // Web sockets
   wsp: WebSocketAsPromised
 
   //Elements
   Els = {
+    settingsTriggers: document.querySelectorAll('.settings-dropdown-trigger'),
     metadata: <HTMLInputElement>document.querySelector('#metadata'),
     clear: document.querySelector('#clear')!,
     export: document.querySelector('#export')!,
     count: document.querySelector('#count')!,
+    startingCount: document.querySelector('#starting-count')!,
     settings: document.querySelector('#settings')!,
     empty: document.querySelector('.empty-text')!,
     records: document.querySelector('.records')!,
-    settingsDropdown: document.querySelector('.settings-dropdown')!,
+    settingsDropdowns: document.querySelectorAll('.settings-dropdown'),
     buttons: <HTMLButtonElement>document.querySelector('#buttons')!,
     scanButton: <HTMLButtonElement>document.querySelector('#scan')!,
     signButton: <HTMLButtonElement>document.querySelector('#sign')!,
@@ -219,10 +222,18 @@ class BulkScanner {
     */
 
     // Add to state
-    this.Halos[keys['primaryPublicKeyHash']] = keys
+    this.Halos[keys['primaryPublicKeyHash']] = {
+      ...keys,
+      edition_number: this.currentCount,
+    }
 
     // Update local storage
     this.UpdateLocalStorage()
+
+    // Increment count
+    this.currentCount = this.currentCount + 1
+    this.Els.count.textContent = this.currentCount.toString()
+    this.UpdateScanButton()
 
     // Update page
     this.Render()
@@ -242,11 +253,19 @@ class BulkScanner {
 
     // Add if doesnt exist
     if (this.Halos[keys['primaryPublicKeyHash']] !== undefined) return
-    this.Halos[keys['primaryPublicKeyHash']] = keys
+    this.Halos[keys['primaryPublicKeyHash']] = {
+      ...keys,
+      edition_number: this.currentCount,
+    }
     // document.querySelector('#console')!.innerHTML += JSON.stringify(this.Halos[keys['primaryPublicKeyHash']])
 
     // Update storage
     this.UpdateLocalStorage()
+
+    // Increment count
+    this.currentCount += 1
+    this.Els.count.textContent = this.currentCount.toString()
+    this.UpdateScanButton()
 
     // Rebuild page
     this.Render()
@@ -275,17 +294,24 @@ class BulkScanner {
       const sig = haloConvertSignature(res.input.digest, res.signature.der, potentialKeys[0])
       this.Halos[potentialKey1].sig = sig
       this.Halos[potentialKey1].metadata = metadata
+      this.Halos[potentialKey1].edition_number = this.currentCount
     } else if (this.Halos[potentialKey2]) {
       //@ts-ignore
       const sig = haloConvertSignature(res.input.digest, res.signature.der, potentialKeys[1])
       this.Halos[potentialKey2].sig = sig
       this.Halos[potentialKey2].metadata = metadata
+      this.Halos[potentialKey2].edition_number = this.currentCount
     } else {
       alert('Please scan chip before signing')
     }
 
     // Update storage
     this.UpdateLocalStorage()
+
+    // Increment count
+    this.currentCount += 1
+    this.Els.count.textContent = this.currentCount.toString()
+    this.UpdateScanButton()
 
     // Rerender
     this.Render()
@@ -316,7 +342,15 @@ class BulkScanner {
 
       // Add if doesnt exist
       if (this.Halos[keys['primaryPublicKeyHash']] !== undefined) return
-      this.Halos[keys['primaryPublicKeyHash']] = keys
+      this.Halos[keys['primaryPublicKeyHash']] = {
+        ...keys,
+        edition_number: this.currentCount,
+      }
+
+      // Increment count
+      this.currentCount += 1
+      this.Els.count.textContent = this.currentCount.toString()
+      this.UpdateScanButton()
 
       // Rebuild page
       this.Render()
@@ -415,6 +449,12 @@ class BulkScanner {
         </div>`
             : ''
         }
+      <div class="record-body-section">
+        <h2>Edition number</h2>
+        <div class="record-body-section-box">
+          ${record.edition_number}
+        </div>
+      </div>
         <div class="record-body-section">
           <h2>Primary public key</h2>
           <div class="record-body-section-box">
@@ -441,17 +481,12 @@ class BulkScanner {
     if (haloCount > 0) {
       this.Els.clear.classList.remove('hide')
       this.Els.export.classList.remove('hide')
-      this.Els.count.classList.remove('hide')
       this.Els.empty.classList.add('hide')
     } else {
       this.Els.clear.classList.add('hide')
       this.Els.export.classList.add('hide')
-      this.Els.count.classList.add('hide')
       this.Els.empty.classList.remove('hide')
     }
-
-    // Update count
-    this.Els.count.textContent = haloCount.toString()
   }
 
   UpdateScanButtonText = (text) => {
@@ -464,7 +499,7 @@ class BulkScanner {
       (this.ReaderConnected && this.Mode === 'Standard') ||
       (!this.ReaderConnected && this.Mode === 'Standard' && this.Method === 'webnfc' && this.WebNFCActivelyScanning)
     ) {
-      this.UpdateScanButtonText('Scanning')
+      this.UpdateScanButtonText('Scanning #' + this.currentCount)
       this.Els.scanButton.disabled = true
     } else {
       this.UpdateScanButtonText('Scan')
@@ -487,14 +522,55 @@ class BulkScanner {
   */
 
   AddSettingsListeners = () => {
-    this.Els.settings.addEventListener('click', () => {
-      this.Els.settingsDropdown.classList.toggle('settings-dropdown-active')
+    this.Els.settingsTriggers.forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        trigger.parentElement?.classList.toggle('settings-dropdown-active')
+      })
     })
 
-    this.Els.settingsDropdown.addEventListener('click', (e) => e.stopPropagation())
+    this.Els.settingsDropdowns.forEach((dropdown) => {
+      dropdown.addEventListener('click', (e) => {
+        e.stopPropagation()
+      })
+    })
 
     document.querySelector('html, body')!.addEventListener('click', () => {
-      this.Els.settingsDropdown.classList.remove('settings-dropdown-active')
+      this.Els.settingsDropdowns.forEach((dropdown) => {
+        dropdown.classList.remove('settings-dropdown-active')
+      })
+    })
+
+    this.Els.startingCount.addEventListener('keyup', (e: any) => {
+      const validNumber = /^[0-9]$/
+
+      if (!validNumber.test(e.key) && e.key !== 'Backspace') {
+        e.preventDefault()
+        return
+      }
+
+      const inputVal = (e.target as HTMLInputElement).value
+      const parsedVal = Number(inputVal)
+
+      if (!isNaN(parsedVal)) {
+        this.currentCount = parsedVal
+
+        console.log(this.currentCount)
+
+        this.Els.count.textContent = this.currentCount.toString()
+
+        this.UpdateScanButton()
+      }
+    })
+
+    this.Els.startingCount.addEventListener('blur', (e: any) => {
+      const inputVal = (e.target as HTMLInputElement).value
+
+      if (inputVal === '') {
+        this.currentCount = 0
+        this.Els.count.textContent = '0'
+        ;(e.target as HTMLInputElement).value = '0'
+        this.UpdateScanButton()
+      }
     })
   }
 
