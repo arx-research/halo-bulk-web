@@ -221,16 +221,14 @@ class BulkScanner {
       Update everything
     */
 
-    const shouldIncrement = this.Halos[keys['primaryPublicKeyHash']] === undefined
+    if (this.Halos[keys['primaryPublicKeyHash']] === undefined) {
+      // Add to state
+      this.Halos[keys['primaryPublicKeyHash']] = {
+        ...keys,
+        edition_number: this.currentCount,
+      }
 
-    // Add to state
-    this.Halos[keys['primaryPublicKeyHash']] = {
-      ...keys,
-      edition_number: this.currentCount,
-    }
-
-    // Increment count
-    if (shouldIncrement) {
+      // Increment count
       this.currentCount = this.currentCount + 1
       this.Els.count.textContent = this.currentCount.toString()
       this.Els.startingCount.value = this.currentCount.toString()
