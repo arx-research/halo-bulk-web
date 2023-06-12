@@ -40,7 +40,7 @@ class BulkScanner {
     clear: document.querySelector('#clear')!,
     export: document.querySelector('#export')!,
     count: document.querySelector('#count')!,
-    startingCount: document.querySelector('#starting-count')!,
+    startingCount: <HTMLInputElement>document.querySelector('#starting-count')!,
     settings: document.querySelector('#settings')!,
     empty: document.querySelector('.empty-text')!,
     records: document.querySelector('.records')!,
@@ -233,6 +233,7 @@ class BulkScanner {
     // Increment count
     this.currentCount = this.currentCount + 1
     this.Els.count.textContent = this.currentCount.toString()
+    this.Els.startingCount.value = this.currentCount.toString()
     this.UpdateScanButton()
 
     // Update page
@@ -265,6 +266,7 @@ class BulkScanner {
     // Increment count
     this.currentCount += 1
     this.Els.count.textContent = this.currentCount.toString()
+    this.Els.startingCount.value = this.currentCount.toString()
     this.UpdateScanButton()
 
     // Rebuild page
@@ -311,6 +313,7 @@ class BulkScanner {
     // Increment count
     this.currentCount += 1
     this.Els.count.textContent = this.currentCount.toString()
+    this.Els.startingCount.value = this.currentCount.toString()
     this.UpdateScanButton()
 
     // Rerender
@@ -350,6 +353,7 @@ class BulkScanner {
       // Increment count
       this.currentCount += 1
       this.Els.count.textContent = this.currentCount.toString()
+      this.Els.startingCount.value = this.currentCount.toString()
       this.UpdateScanButton()
 
       // Rebuild page
@@ -553,8 +557,6 @@ class BulkScanner {
 
       if (!isNaN(parsedVal)) {
         this.currentCount = parsedVal
-
-        console.log(this.currentCount)
 
         this.Els.count.textContent = this.currentCount.toString()
 
