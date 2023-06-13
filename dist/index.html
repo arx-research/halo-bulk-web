@@ -15,7 +15,7 @@
 
           <div class="header-buttons">
             <div class="settings-dropdown">
-              <button class="icon-button" id="settings">
+              <button class="icon-button settings-dropdown-trigger" id="settings">
                 <img src="./assets/settings.svg" />
               </button>
 
@@ -44,7 +44,16 @@
               </div>
             </div>
 
-            <span class="icon-button hide" id="count">0</span>
+            <div class="settings-dropdown">
+              <span class="icon-button settings-dropdown-trigger" id="count">1</span>
+
+              <div class="settings-dropdown-dropdown">
+                <div class="settings-dropdown-count">
+                  <label for="starting-count">Starting count</label>
+                  <input id="starting-count" type="text" value="1" />
+                </div>
+              </div>
+            </div>
 
             <button class="icon-button hide" id="export">
               <img src="./assets/export.svg" alt="Export" />
