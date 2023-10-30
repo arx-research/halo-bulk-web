@@ -340,7 +340,14 @@ class BulkScanner {
       }
 
       // Add if doesnt exist
-      if (this.Halos[keys['primaryPublicKeyHash']] !== undefined) return
+      if (this.Halos[keys['primaryPublicKeyHash']] !== undefined) {
+        if (this.Method === 'webnfc') {
+          this.WebNFCActivelyScanning = true
+          this.UpdateScanButton()
+          this.UpdateSignButton()
+          this.HandleStandardScan()
+        }
+      }
 
       this.Halos[keys['primaryPublicKeyHash']] = {
         ...keys,
